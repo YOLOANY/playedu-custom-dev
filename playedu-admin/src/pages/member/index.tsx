@@ -14,7 +14,7 @@ import {
 } from "antd";
 import type { MenuProps } from "antd";
 import type { ColumnsType } from "antd/es/table";
-// import styles from "./index.module.less";
+import styles from "./index.module.less";
 import {
   PlusOutlined,
   DownOutlined,
@@ -68,11 +68,11 @@ type OptionalColumnKey =
   | "department";
 
 const columnOptions: { label: string; value: OptionalColumnKey }[] = [
+  { label: "所属部门", value: "department" },
   { label: "登录邮箱", value: "email" },
   { label: "手机号", value: "mobile" },
   { label: "身份证号", value: "id_card" },
   { label: "加入时间", value: "created_at" },
-  { label: "所属部门", value: "department" },
 ];
 
 const optionalColumnKeys = columnOptions.map((option) => option.value);
@@ -210,6 +210,11 @@ const MemberPage = () => {
       title: "所属部门",
       key: "department",
       dataIndex: "id",
+      width: 160,
+      align: "left",
+      onHeaderCell: () => ({
+        style: { whiteSpace: "nowrap", textAlign: "left" },
+      }),
       render: (id: number) => (
         <div className="float-left">
           {user_dep_ids[id] &&
@@ -464,7 +469,7 @@ const MemberPage = () => {
 
   return (
     <>
-      <div className="tree-main-body">
+      <div className={`tree-main-body ${styles.memberTree}`}>
         <div className="left-box">
           <TreeDepartment
             selected={dep_ids}
@@ -536,34 +541,44 @@ const MemberPage = () => {
               )} */}
             </div>
             <div
-              className="d-flex"
+              className={`d-flex ${styles.memberAlignedSection} ${styles.memberSearchBar}`}
               style={{
-                width: "100%",
                 flexWrap: "wrap",
-                justifyContent: "flex-end",
                 gap: "12px 16px",
               }}
             >
-            <div className="d-flex" style={{ flexShrink: 0 }}>
-              <Popover
-                content={
-                  <Checkbox.Group
-                    className="d-flex"
-                    style={{ flexDirection: "column", gap: 8 }}
-                    options={columnOptions}
-                    value={visibleColumns}
-                    onChange={(values) => {
-                      const nextColumns = values.filter(isOptionalColumnKey);
-                      setVisibleColumns(nextColumns);
-                    }}
-                  />
-                }
-                trigger="click"
-                placement="bottomLeft"
-              >
-                <Button icon={<SettingOutlined />}>筛选</Button>
-              </Popover>
-            </div>
+              <div className="d-flex" style={{ flexShrink: 0 }}>
+                <Popover
+                  content={
+                    <Checkbox.Group
+                      className="d-flex"
+                      style={{
+                        flexDirection: "column",
+                        alignItems: "flex-start",
+                        gap: 8,
+                        textAlign: "left",
+                      }}
+                      options={[
+                        {
+                          label: "学员",
+                          value: "name",
+                          disabled: true,
+                        },
+                        ...columnOptions,
+                      ]}
+                      value={["name", ...visibleColumns]}
+                      onChange={(values) => {
+                        const nextColumns = values.filter(isOptionalColumnKey);
+                        setVisibleColumns(nextColumns);
+                      }}
+                    />
+                  }
+                  trigger="click"
+                  placement="bottomLeft"
+                >
+                  <Button icon={<SettingOutlined />}>筛选</Button>
+                </Popover>
+              </div>
               <div className="d-flex" style={{ flexShrink: 0, gap: 8 }}>
                 <Typography.Text>姓名：</Typography.Text>
                 <Input
@@ -573,7 +588,7 @@ const MemberPage = () => {
                       nickname: e.target.value,
                     });
                   }}
-                  style={{ width: 120 }}
+                  style={{ width: 150 }}
                   placeholder="请输入姓名关键字"
                   allowClear
                 />
@@ -587,7 +602,7 @@ const MemberPage = () => {
                       email: e.target.value,
                     });
                   }}
-                  style={{ width: 120 }}
+                  style={{ width: 150 }}
                   placeholder="请输入邮箱账号"
                   allowClear
                 />
@@ -601,7 +616,7 @@ const MemberPage = () => {
                       mobile: e.target.value,
                     });
                   }}
-                  style={{ width: 120 }}
+                  style={{ width: 150 }}
                   maxLength={11}
                   placeholder="请输入完整手机号"
                   allowClear
@@ -616,7 +631,7 @@ const MemberPage = () => {
                       id_card: e.target.value,
                     });
                   }}
-                  style={{ width: 120 }}
+                  style={{ width: 150 }}
                   maxLength={18}
                   placeholder="请输入完整身份证号"
                   allowClear
@@ -640,7 +655,7 @@ const MemberPage = () => {
               </div>
             </div>
           </div>
-          <div className="float-left">
+          <div className={`float-left ${styles.memberAlignedSection}`}>
             <Table
               columns={visibleTableColumns}
               dataSource={list}
