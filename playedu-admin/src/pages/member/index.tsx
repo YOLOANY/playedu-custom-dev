@@ -9,6 +9,8 @@ import {
   message,
   Image,
   Dropdown,
+  Checkbox,
+  Popover,
 } from "antd";
 import type { MenuProps } from "antd";
 import type { ColumnsType } from "antd/es/table";
@@ -17,6 +19,7 @@ import {
   PlusOutlined,
   DownOutlined,
   ExclamationCircleFilled,
+  SettingOutlined,
 } from "@ant-design/icons";
 import { user } from "../../api/index";
 import { dateFormat } from "../../utils/index";
@@ -57,6 +60,21 @@ interface LocalSearchParamsInterface {
   id_card?: string;
 }
 
+type OptionalColumnKey =
+  | "email"
+  | "mobile"
+  | "id_card"
+  | "created_at"
+  | "department";
+
+const columnOptions: { label: string; value: OptionalColumnKey }[] = [
+  { label: "登录邮箱", value: "email" },
+  { label: "手机号", value: "mobile" },
+  { label: "身份证号", value: "id_card" },
+  { label: "加入时间", value: "created_at" },
+  { label: "所属部门", value: "department" },
+];
+
 const MemberPage = () => {
   const result = new URLSearchParams(useLocation().search);
 
@@ -80,6 +98,9 @@ const MemberPage = () => {
   const [resourceUrl, setResourceUrl] = useState<ResourceUrlModel>({});
   const [total, setTotal] = useState(0);
   const [refresh, setRefresh] = useState(false);
+  const [visibleColumns, setVisibleColumns] = useState<OptionalColumnKey[]>(
+    columnOptions.map((option) => option.value)
+  );
   const [dep_ids, setDepIds] = useState<number[]>([]);
   const [selLabel, setLabel] = useState<string>(
     result.get("label") ? String(result.get("label")) : "全部部门"
@@ -106,6 +127,7 @@ const MemberPage = () => {
   const columns: ColumnsType<DataType> = [
     {
       title: "学员",
+      key: "name",
       dataIndex: "name",
       width: 300,
       render: (_, record: any) => (
@@ -127,6 +149,7 @@ const MemberPage = () => {
     },
     {
       title: "所属部门",
+      key: "department",
       dataIndex: "id",
       render: (id: number) => (
         <div className="float-left">
@@ -145,24 +168,28 @@ const MemberPage = () => {
     },
     {
       title: "登录邮箱",
+      key: "email",
       width: 200,
       dataIndex: "email",
       render: (email: string) => <span>{email}</span>,
     },
     {
       title: "手机号",
+      key: "mobile",
       width: 160,
       dataIndex: "mobile",
       render: (mobile: string) => <span>{mobile || "-"}</span>,
     },
     {
       title: "身份证号",
+      key: "id_card",
       width: 200,
       dataIndex: "id_card",
       render: (idCard: string) => <span>{idCard || "-"}</span>,
     },
     {
       title: "加入时间",
+      key: "created_at",
       width: 200,
       dataIndex: "created_at",
       render: (text: string) => <span>{dateFormat(text)}</span>,
@@ -245,6 +272,13 @@ const MemberPage = () => {
       },
     },
   ];
+
+  const visibleTableColumns = columns.filter(
+    (column) =>
+      column.key === "name" ||
+      column.key === "action" ||
+      visibleColumns.some((key) => key === column.key)
+  );
 
   useEffect(() => {
     getData();
@@ -520,9 +554,28 @@ const MemberPage = () => {
               </div>
             </div>
           </div>
+          <div className="float-left j-r-flex mb-16">
+            <Popover
+              content={
+                <Checkbox.Group
+                  className="d-flex"
+                  style={{ flexDirection: "column", gap: 8 }}
+                  options={columnOptions}
+                  value={visibleColumns}
+                  onChange={(values) =>
+                    setVisibleColumns(values as OptionalColumnKey[])
+                  }
+                />
+              }
+              trigger="click"
+              placement="bottomRight"
+            >
+              <Button icon={<SettingOutlined />}>表头字段</Button>
+            </Popover>
+          </div>
           <div className="float-left">
             <Table
-              columns={columns}
+              columns={visibleTableColumns}
               dataSource={list}
               loading={loading}
               pagination={paginationProps}
