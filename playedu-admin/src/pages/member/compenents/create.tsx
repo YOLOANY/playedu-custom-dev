@@ -47,6 +47,7 @@ export const MemberCreate: React.FC<PropInterface> = ({
     form.setFieldsValue({
       email: "",
       name: "",
+      mobile: "",
       password: "",
       avatar: systemMemberDefaultAvatar
         ? Number(systemMemberDefaultAvatar)
@@ -99,15 +100,12 @@ export const MemberCreate: React.FC<PropInterface> = ({
     if (loading) {
       return;
     }
-    // if (values.idCard !== "" && !ValidataCredentials(values.idCard)) {
-    //   message.error("请输入正确的身份证号！");
-    //   return;
-    // }
     setLoading(true);
     user
       .storeUser(
         values.email,
         values.name,
+        values.mobile || null,
         values.avatar,
         values.password,
         values.idCard,
@@ -198,6 +196,39 @@ export const MemberCreate: React.FC<PropInterface> = ({
                   allowClear
                   style={{ width: 274 }}
                   placeholder="请输入学员登录邮箱"
+                />
+              </Form.Item>
+              <Form.Item
+                label="手机号"
+                name="mobile"
+                rules={[
+                  { pattern: /^1[3-9]\d{9}$/, message: "请输入正确的手机号!" },
+                ]}
+              >
+                <Input
+                  allowClear
+                  maxLength={11}
+                  style={{ width: 274 }}
+                  placeholder="请输入学员手机号（选填）"
+                />
+              </Form.Item>
+              <Form.Item
+                label="身份证号"
+                name="idCard"
+                rules={[
+                  {
+                    validator: (_, value) =>
+                      !value || ValidataCredentials(value)
+                        ? Promise.resolve()
+                        : Promise.reject(new Error("请输入正确的身份证号!")),
+                  },
+                ]}
+              >
+                <Input
+                  allowClear
+                  maxLength={18}
+                  style={{ width: 274 }}
+                  placeholder="请输入身份证号（选填）"
                 />
               </Form.Item>
               <Form.Item

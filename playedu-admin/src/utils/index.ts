@@ -105,14 +105,36 @@ export function inStrArray(array: string[], value: string): boolean {
   return false;
 }
 
-export function ValidataCredentials(value: any) {
-  let regIdCard =
-    /^(^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$)|(^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])((\d{4})|\d{3}[Xx])$)$/;
-  if (regIdCard.test(value)) {
-    if (value.length === 18) {
-      return true;
-    }
+export function ValidataCredentials(value: any): boolean {
+  if (typeof value !== "string") {
+    return false;
   }
+  const idCard = value.trim().toUpperCase();
+  if (
+    !/^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[0-9X]$/.test(
+      idCard
+    )
+  ) {
+    return false;
+  }
+  const year = Number(idCard.slice(6, 10));
+  const month = Number(idCard.slice(10, 12));
+  const day = Number(idCard.slice(12, 14));
+  const birthDate = new Date(Date.UTC(year, month - 1, day));
+  if (
+    birthDate.getUTCFullYear() !== year ||
+    birthDate.getUTCMonth() !== month - 1 ||
+    birthDate.getUTCDate() !== day
+  ) {
+    return false;
+  }
+  const weights = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
+  const checkCodes = "10X98765432";
+  const sum = weights.reduce(
+    (total, weight, index) => total + Number(idCard[index]) * weight,
+    0
+  );
+  return idCard[17] === checkCodes[sum % 11];
 }
 
 export function checkUrl(value: any) {

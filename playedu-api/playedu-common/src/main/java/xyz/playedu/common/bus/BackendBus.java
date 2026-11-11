@@ -25,11 +25,23 @@ import xyz.playedu.common.domain.AdminRole;
 import xyz.playedu.common.service.AdminPermissionService;
 import xyz.playedu.common.service.AdminRoleService;
 import xyz.playedu.common.service.AdminUserService;
+import xyz.playedu.common.util.IdCardCrypto;
 import xyz.playedu.common.util.PrivacyUtil;
 import xyz.playedu.common.util.StringUtil;
 
 @Component
 public class BackendBus {
+
+    private static IdCardCrypto idCardCrypto;
+
+    @Autowired
+    public void setIdCardCrypto(IdCardCrypto idCardCrypto) {
+        BackendBus.idCardCrypto = idCardCrypto;
+    }
+
+    public static String decryptIdCard(String value) {
+        return idCardCrypto.decrypt(value);
+    }
 
     @Autowired private AdminPermissionService permissionService;
 

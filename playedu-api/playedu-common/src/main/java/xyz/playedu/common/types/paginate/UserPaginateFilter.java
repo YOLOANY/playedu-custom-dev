@@ -28,7 +28,9 @@ public class UserPaginateFilter {
 
     private String name;
     private String email;
+    private String mobile;
     private String idCard;
+    private String idCardBidx;
     private Integer isActive;
     private Integer isLock;
     private Integer isVerify;

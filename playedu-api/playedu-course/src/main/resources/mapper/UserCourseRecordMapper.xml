@@ -43,8 +43,8 @@
             <if test="email != null and email != ''">
                 AND `users`.`email` = #{email}
             </if>
-            <if test="idCard != null and idCard != ''">
-                AND `users`.`id_card` = #{idCard}
+            <if test="idCardBidx != null and idCardBidx != ''">
+                AND `users`.`id_card_bidx` = #{idCardBidx}
             </if>
         </where>
     </select>
@@ -68,8 +68,8 @@
             <if test="email != null and email != ''">
                 AND `users`.`email` = #{email}
             </if>
-            <if test="idCard != null and idCard != ''">
-                AND `users`.`id_card` = #{idCard}
+            <if test="idCardBidx != null and idCardBidx != ''">
+                AND `users`.`id_card_bidx` = #{idCardBidx}
             </if>
         </where>
         <if test="sortAlgo == 'asc'">

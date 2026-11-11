@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
@@ -33,6 +34,9 @@ public class UserRequest {
     @NotBlank(message = "请输入邮箱")
     @Email(message = "请输入正确的邮箱")
     private String email;
+
+    @Pattern(regexp = "^1[3-9]\\d{9}$", message = "请输入正确的手机号")
+    private String mobile;
 
     @NotBlank(message = "请输入姓名")
     @Length(min = 1, max = 20, message = "姓名长度在1-20个字符之间")

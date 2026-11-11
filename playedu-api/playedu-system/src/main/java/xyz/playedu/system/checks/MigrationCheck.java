@@ -671,7 +671,8 @@ public class MigrationCheck implements CommandLineRunner {
                                                       `avatar` int(11) NOT NULL DEFAULT 0 COMMENT '头像',
                                                       `password` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '密码',
                                                       `salt` varchar(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT 'salt',
-                                                      `id_card` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '身份证号',
+                                                      `id_card` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '身份证号密文',
+                                                      `id_card_bidx` char(64) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL COMMENT '身份证号盲索引',
                                                       `credit1` int(11) NOT NULL DEFAULT 0 COMMENT '学分',
                                                       `create_ip` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '注册IP',
                                                       `create_city` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '注册城市',
@@ -686,7 +687,8 @@ public class MigrationCheck implements CommandLineRunner {
                                                       `from_scene` int(11) NOT NULL DEFAULT 0 COMMENT '来源[0:本地,1:企业微信,2:飞书]',
                                                       `deleted` tinyint(1) unsigned NULL DEFAULT 0 COMMENT '删除标志[0:存在,1:删除]',
                                                       PRIMARY KEY (`id`),
-                                                      UNIQUE KEY `email` (`email`)
+                                                      UNIQUE KEY `email` (`email`),
+                                                      KEY `idx_users_id_card_bidx` (`id_card_bidx`)
                                                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT '学员表';
                                                     """);
                                 }

@@ -28,6 +28,7 @@ export function createUser() {
 export function storeUser(
   email: string,
   name: string,
+  mobile: string | null,
   avatar: string,
   password: string,
   idCard: string,
@@ -36,6 +37,7 @@ export function storeUser(
   return client.post("/backend/v1/user/create", {
     email,
     name,
+    mobile,
     avatar,
     password,
     id_card: idCard,
@@ -51,14 +53,16 @@ export function updateUser(
   id: number,
   email: string,
   name: string,
+  mobile: string | null,
   avatar: string,
   password: string,
-  idCard: string,
+  idCard: string | null,
   depIds: number[]
 ) {
   return client.put(`/backend/v1/user/${id}`, {
     email,
     name,
+    mobile,
     avatar,
     password,
     id_card: idCard,

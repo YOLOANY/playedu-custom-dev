@@ -42,6 +42,8 @@ public class User implements Serializable {
     /** 邮件 */
     private String email;
 
+    private String mobile;
+
     /** 真实姓名 */
     private String name;
 
@@ -57,6 +59,10 @@ public class User implements Serializable {
     /** 身份证号 */
     @JsonProperty("id_card")
     private String idCard;
+
+    @JsonIgnore
+    @TableField("id_card_bidx")
+    private String idCardBidx;
 
     /** 学分 */
     private Integer credit1;
@@ -118,6 +124,22 @@ public class User implements Serializable {
                 getEmail());
     }
 
+    @JsonGetter("mobile")
+    public String transformMobile() {
+        return BackendBus.valueHidden(
+                BPermissionConstant.DATA_USER_MOBILE,
+                BackendConstant.PRIVACY_FIELD_TYPE_PHONE,
+                getMobile());
+    }
+
+    @JsonGetter("id_card")
+    public String transformIdCard() {
+        return BackendBus.valueHidden(
+                BPermissionConstant.DATA_USER_ID_CARD,
+                BackendConstant.PRIVACY_FIELD_TYPE_ID_CARD,
+                BackendBus.decryptIdCard(getIdCard()));
+    }
+
     @Override
     public boolean equals(Object that) {
         if (this == that) {
@@ -134,6 +156,9 @@ public class User implements Serializable {
                 && (this.getEmail() == null
                         ? other.getEmail() == null
                         : this.getEmail().equals(other.getEmail()))
+                && (this.getMobile() == null
+                        ? other.getMobile() == null
+                        : this.getMobile().equals(other.getMobile()))
                 && (this.getName() == null
                         ? other.getName() == null
                         : this.getName().equals(other.getName()))
@@ -149,6 +174,9 @@ public class User implements Serializable {
                 && (this.getIdCard() == null
                         ? other.getIdCard() == null
                         : this.getIdCard().equals(other.getIdCard()))
+                && (this.getIdCardBidx() == null
+                        ? other.getIdCardBidx() == null
+                        : this.getIdCardBidx().equals(other.getIdCardBidx()))
                 && (this.getCredit1() == null
                         ? other.getCredit1() == null
                         : this.getCredit1().equals(other.getCredit1()))
@@ -190,11 +218,13 @@ public class User implements Serializable {
         int result = 1;
         result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
         result = prime * result + ((getEmail() == null) ? 0 : getEmail().hashCode());
+        result = prime * result + ((getMobile() == null) ? 0 : getMobile().hashCode());
         result = prime * result + ((getName() == null) ? 0 : getName().hashCode());
         result = prime * result + ((getAvatar() == null) ? 0 : getAvatar().hashCode());
         result = prime * result + ((getPassword() == null) ? 0 : getPassword().hashCode());
         result = prime * result + ((getSalt() == null) ? 0 : getSalt().hashCode());
         result = prime * result + ((getIdCard() == null) ? 0 : getIdCard().hashCode());
+        result = prime * result + ((getIdCardBidx() == null) ? 0 : getIdCardBidx().hashCode());
         result = prime * result + ((getCredit1() == null) ? 0 : getCredit1().hashCode());
         result = prime * result + ((getCreateIp() == null) ? 0 : getCreateIp().hashCode());
         result = prime * result + ((getCreateCity() == null) ? 0 : getCreateCity().hashCode());
@@ -223,6 +253,7 @@ public class User implements Serializable {
         sb.append(", password=").append(password);
         sb.append(", salt=").append(salt);
         sb.append(", idCard=").append(idCard);
+        sb.append(", idCardBidx=").append(idCardBidx);
         sb.append(", credit1=").append(credit1);
         sb.append(", createIp=").append(createIp);
         sb.append(", createCity=").append(createCity);

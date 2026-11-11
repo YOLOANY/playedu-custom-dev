@@ -15,12 +15,14 @@
  */
 package xyz.playedu.system.aspectj;
 
+import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -52,9 +54,15 @@ public class AdminLogAspect {
 
     @Autowired private AdminLogService adminLogService;
 
-    /** 排除敏感属性字段 */
-    public static final String EXCLUDE_PROPERTIES =
-            "password,oldPassword,newPassword,confirmPassword,token";
+    private static final Set<String> EXCLUDE_PROPERTIES =
+            Set.of(
+                    "password",
+                    "oldPassword",
+                    "newPassword",
+                    "confirmPassword",
+                    "token",
+                    "idCard",
+                    "id_card");
 
     /** Controller层切点 注解拦截 */
     @Pointcut("@annotation(xyz.playedu.common.annotation.Log)")
@@ -160,27 +168,37 @@ public class AdminLogAspect {
 
     public JSONObject excludeProperties(String jsonData) {
         JSONObject jsonObjectResult = new JSONObject();
-        // 把传入String类型转换成JSONObject对象
         if (JSONUtil.isTypeJSONObject(jsonData)) {
             JSONObject jsonObject = JSONUtil.parseObj(jsonData);
             for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
                 String key = entry.getKey();
                 Object value = entry.getValue();
                 if (StringUtil.isNotNull(value)) {
-                    // 如果value依旧是json类型的话继续递归解析
-                    if (JSONUtil.isTypeJSONObject(value.toString())) {
-                        jsonObjectResult.put(key, excludeProperties(entry.getValue().toString()));
+                    if (EXCLUDE_PROPERTIES.contains(key)) {
+                        jsonObjectResult.put(key, SystemConstant.CONFIG_MASK);
                     } else {
-                        // 如果value是单纯的数据,执行脱敏操作
-                        if (EXCLUDE_PROPERTIES.contains(key)) {
-                            jsonObjectResult.put(key, SystemConstant.CONFIG_MASK);
-                        } else {
-                            jsonObjectResult.put(key, value);
-                        }
+                        jsonObjectResult.put(key, excludeValue(value));
                     }
                 }
             }
         }
         return jsonObjectResult;
+    }
+
+    private Object excludeValue(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (JSONUtil.isTypeJSONObject(value.toString())) {
+            return excludeProperties(value.toString());
+        }
+        if (JSONUtil.isTypeJSONArray(value.toString())) {
+            JSONArray result = new JSONArray();
+            for (Object item : JSONUtil.parseArray(value)) {
+                result.put(excludeValue(item));
+            }
+            return result;
+        }
+        return value;
     }
 }

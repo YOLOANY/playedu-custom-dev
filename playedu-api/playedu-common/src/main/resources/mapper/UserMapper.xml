@@ -7,11 +7,13 @@
     <resultMap id="BaseResultMap" type="xyz.playedu.common.domain.User">
             <id property="id" column="id" jdbcType="INTEGER"/>
             <result property="email" column="email" jdbcType="VARCHAR"/>
+            <result property="mobile" column="mobile" jdbcType="VARCHAR"/>
             <result property="name" column="name" jdbcType="VARCHAR"/>
             <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
             <result property="password" column="password" jdbcType="VARCHAR"/>
             <result property="salt" column="salt" jdbcType="VARCHAR"/>
             <result property="idCard" column="id_card" jdbcType="VARCHAR"/>
+            <result property="idCardBidx" column="id_card_bidx" jdbcType="VARCHAR"/>
             <result property="credit1" column="credit1" jdbcType="INTEGER"/>
             <result property="createIp" column="create_ip" jdbcType="VARCHAR"/>
             <result property="createCity" column="create_city" jdbcType="VARCHAR"/>
@@ -26,9 +28,9 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,email,name,
+        id,email,mobile,name,
         avatar,password,salt,
-        id_card,credit1,create_ip,
+        id_card,id_card_bidx,credit1,create_ip,
         create_city,is_active,is_lock,
         is_verify,verify_at,is_set_password,
         login_at,created_at,updated_at
@@ -62,8 +64,11 @@
             <if test="email != null and email != ''">
                 AND `users`.`email` LIKE concat('%',#{email},'%')
             </if>
-            <if test="idCard != null and idCard != ''">
-                AND `users`.`id_card` = #{idCard}
+            <if test="mobile != null and mobile != ''">
+                AND `users`.`mobile` = #{mobile}
+            </if>
+            <if test="idCardBidx != null and idCardBidx != ''">
+                AND `users`.`id_card_bidx` = #{idCardBidx}
             </if>
             <if test="isActive != null">
                 AND `users`.`is_active` = #{isActive}
@@ -113,8 +118,11 @@
             <if test="email != null and email != ''">
                 AND `users`.`email` LIKE concat('%',#{email},'%')
             </if>
-            <if test="idCard != null and idCard != ''">
-                AND `users`.`id_card` = #{idCard}
+            <if test="mobile != null and mobile != ''">
+                AND `users`.`mobile` = #{mobile}
+            </if>
+            <if test="idCardBidx != null and idCardBidx != ''">
+                AND `users`.`id_card_bidx` = #{idCardBidx}
             </if>
             <if test="isActive != null">
                 AND `users`.`is_active` = #{isActive}

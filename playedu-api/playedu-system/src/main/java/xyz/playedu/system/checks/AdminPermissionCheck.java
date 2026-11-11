@@ -273,6 +273,24 @@ public class AdminPermissionCheck implements CommandLineRunner {
                                                         setSlug(BPermissionConstant.DATA_USER_NAME);
                                                     }
                                                 },
+                                                new AdminPermission() {
+                                                    {
+                                                        setSort(20);
+                                                        setName("手机号");
+                                                        setSlug(
+                                                                BPermissionConstant
+                                                                        .DATA_USER_MOBILE);
+                                                    }
+                                                },
+                                                new AdminPermission() {
+                                                    {
+                                                        setSort(30);
+                                                        setName("身份证号");
+                                                        setSlug(
+                                                                BPermissionConstant
+                                                                        .DATA_USER_ID_CARD);
+                                                    }
+                                                },
                                             });
                                 }
                             });

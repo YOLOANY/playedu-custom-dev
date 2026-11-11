@@ -32,6 +32,8 @@ import xyz.playedu.common.types.paginate.UserPaginateFilter;
 public interface UserService extends IService<User> {
     boolean emailIsExists(String email);
 
+    boolean mobileIsExists(String mobile, Integer excludeUserId);
+
     PaginationResult<User> paginate(int page, int size, UserPaginateFilter filter);
 
     List<String> existsEmailsByEmails(List<String> emails);
@@ -52,10 +54,29 @@ public interface UserService extends IService<User> {
             String idCard,
             Integer[] depIds);
 
+    User createWithDepIds(
+            String email,
+            String name,
+            String mobile,
+            Integer avatar,
+            String password,
+            String idCard,
+            Integer[] depIds);
+
     User updateWithDepIds(
             User user,
             String email,
             String name,
+            Integer avatar,
+            String password,
+            String idCard,
+            Integer[] depIds);
+
+    User updateWithDepIds(
+            User user,
+            String email,
+            String name,
+            String mobile,
             Integer avatar,
             String password,
             String idCard,

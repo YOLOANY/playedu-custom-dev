@@ -29,6 +29,7 @@ export const MemberUpdate: React.FC<PropInterface> = ({
   const [departments, setDepartments] = useState<any>([]);
   const [resourceUrl, setResourceUrl] = useState<ResourceUrlModel>({});
   const [avatar, setAvatar] = useState<string>(memberDefaultAvatar);
+  const [idCardTouched, setIdCardTouched] = useState(false);
 
   useEffect(() => {
     setInit(true);
@@ -36,6 +37,7 @@ export const MemberUpdate: React.FC<PropInterface> = ({
       return;
     }
     if (open) {
+      setIdCardTouched(false);
       getParams();
       form.setFieldsValue({
         password: "",
@@ -64,6 +66,7 @@ export const MemberUpdate: React.FC<PropInterface> = ({
       form.setFieldsValue({
         email: user.email,
         name: user.name,
+        mobile: user.mobile,
         avatar: user.avatar,
         idCard: user.id_card,
         dep_ids: res.data.dep_ids,
@@ -121,9 +124,10 @@ export const MemberUpdate: React.FC<PropInterface> = ({
         id,
         values.email,
         values.name,
+        values.mobile || null,
         values.avatar,
         values.password || "",
-        values.idCard,
+        idCardTouched ? values.idCard || "" : null,
         values.dep_ids
       )
       .then((res: any) => {
@@ -217,6 +221,40 @@ export const MemberUpdate: React.FC<PropInterface> = ({
                   style={{ width: 274 }}
                   allowClear
                   placeholder="请输入学员登录邮箱"
+                />
+              </Form.Item>
+              <Form.Item
+                label="手机号"
+                name="mobile"
+                rules={[
+                  { pattern: /^1[3-9]\d{9}$/, message: "请输入正确的手机号!" },
+                ]}
+              >
+                <Input
+                  allowClear
+                  maxLength={11}
+                  style={{ width: 274 }}
+                  placeholder="请输入学员手机号（选填）"
+                />
+              </Form.Item>
+              <Form.Item
+                label="身份证号"
+                name="idCard"
+                rules={[
+                  {
+                    validator: (_, value) =>
+                      !value || ValidataCredentials(value)
+                        ? Promise.resolve()
+                        : Promise.reject(new Error("请输入正确的身份证号!")),
+                  },
+                ]}
+              >
+                <Input
+                  allowClear
+                  maxLength={18}
+                  style={{ width: 274 }}
+                  placeholder="请输入新的身份证号；清空后保存可删除"
+                  onChange={() => setIdCardTouched(true)}
                 />
               </Form.Item>
               <Form.Item label="登录密码" name="password">

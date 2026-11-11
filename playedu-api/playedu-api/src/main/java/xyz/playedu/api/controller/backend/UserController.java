@@ -47,6 +47,8 @@ import xyz.playedu.common.types.paginate.UserCourseHourRecordPaginateFilter;
 import xyz.playedu.common.types.paginate.UserCourseRecordPaginateFilter;
 import xyz.playedu.common.types.paginate.UserPaginateFilter;
 import xyz.playedu.common.util.HelperUtil;
+import xyz.playedu.common.util.IdCardCrypto;
+import xyz.playedu.common.util.IdCardValidator;
 import xyz.playedu.common.util.StringUtil;
 import xyz.playedu.course.domain.*;
 import xyz.playedu.course.service.*;
@@ -84,6 +86,8 @@ public class UserController {
 
     @Autowired private ResourceService resourceService;
 
+    @Autowired private IdCardCrypto idCardCrypto;
+
     @BackendPermission(slug = BPermissionConstant.USER_INDEX)
     @GetMapping("/index")
     @Log(title = "学员-列表", businessType = BusinessTypeConstant.GET)
@@ -95,6 +99,7 @@ public class UserController {
 
         String name = MapUtils.getString(params, "name");
         String email = MapUtils.getString(params, "email");
+        String mobile = MapUtils.getString(params, "mobile");
         String idCard = MapUtils.getString(params, "id_card");
         Integer isActive = MapUtils.getInteger(params, "is_active");
         Integer isLock = MapUtils.getInteger(params, "is_lock");
@@ -137,6 +142,7 @@ public class UserController {
                     {
                         setName(name);
                         setEmail(email);
+                        setMobile(mobile);
                         setIdCard(idCard);
                         setIsActive(isActive);
                         setIsLock(isLock);
@@ -188,6 +194,9 @@ public class UserController {
         if (userService.emailIsExists(email)) {
             return JsonResponse.error("邮箱已存在");
         }
+        if (req.getMobile() != null && userService.mobileIsExists(req.getMobile(), null)) {
+            return JsonResponse.error("手机号已存在");
+        }
         String password = req.getPassword();
         if (password.isEmpty()) {
             return JsonResponse.error("请输入密码");
@@ -195,6 +204,7 @@ public class UserController {
         userService.createWithDepIds(
                 email,
                 req.getName(),
+                req.getMobile(),
                 req.getAvatar(),
                 req.getPassword(),
                 req.getIdCard(),
@@ -240,11 +250,15 @@ public class UserController {
         if (!email.equals(user.getEmail()) && userService.emailIsExists(email)) {
             return JsonResponse.error("邮箱已存在");
         }
+        if (req.getMobile() != null && userService.mobileIsExists(req.getMobile(), id)) {
+            return JsonResponse.error("手机号已存在");
+        }
 
         userService.updateWithDepIds(
                 user,
                 email,
                 req.getName(),
+                req.getMobile(),
                 req.getAvatar(),
                 req.getPassword(),
                 req.getIdCard(),
@@ -375,6 +389,11 @@ public class UserController {
                 errorLines.add(new String[] {"第" + (i + startLine) + "行", "密码为空"});
             }
 
+            String tmpIdCard = userItem.getIdCard();
+            if (tmpIdCard != null && !tmpIdCard.isBlank() && !IdCardValidator.isValid(tmpIdCard)) {
+                errorLines.add(new String[] {"第" + (i + startLine) + "行", "身份证号格式错误"});
+            }
+
             // 待插入数据
             User tmpInsertUser = new User();
             String tmpSalt = HelperUtil.randomString(6);
@@ -383,7 +402,12 @@ public class UserController {
             tmpInsertUser.setSalt(tmpSalt);
             tmpInsertUser.setName(tmpName);
             tmpInsertUser.setAvatar(defaultAvatar);
-            tmpInsertUser.setIdCard(userItem.getIdCard());
+            tmpInsertUser.setIdCard(idCardCrypto.encrypt(tmpIdCard));
+            tmpInsertUser.setIdCardBidx(idCardCrypto.blindIndex(tmpIdCard));
+            if (tmpIdCard != null && !tmpIdCard.isBlank()) {
+                tmpInsertUser.setIsVerify(1);
+                tmpInsertUser.setVerifyAt(new Date());
+            }
             tmpInsertUser.setCreateIp(SystemConstant.INTERNAL_IP);
             tmpInsertUser.setCreateCity(SystemConstant.INTERNAL_IP_AREA);
             tmpInsertUser.setCreatedAt(new Date());

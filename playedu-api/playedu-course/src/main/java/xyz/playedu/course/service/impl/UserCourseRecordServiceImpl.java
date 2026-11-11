@@ -19,10 +19,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import xyz.playedu.common.types.paginate.PaginationResult;
 import xyz.playedu.common.types.paginate.UserCourseRecordPaginateFilter;
+import xyz.playedu.common.util.IdCardCrypto;
 import xyz.playedu.course.domain.UserCourseRecord;
 import xyz.playedu.course.mapper.UserCourseRecordMapper;
 import xyz.playedu.course.service.UserCourseRecordService;
@@ -36,6 +38,8 @@ import xyz.playedu.course.service.UserCourseRecordService;
 public class UserCourseRecordServiceImpl
         extends ServiceImpl<UserCourseRecordMapper, UserCourseRecord>
         implements UserCourseRecordService {
+
+    @Autowired private IdCardCrypto idCardCrypto;
 
     @Override
     public UserCourseRecord find(Integer userId, Integer courseId) {
@@ -105,6 +109,9 @@ public class UserCourseRecordServiceImpl
     @Override
     public PaginationResult<UserCourseRecord> paginate(
             int page, int size, UserCourseRecordPaginateFilter filter) {
+        if (filter.getIdCard() != null && !filter.getIdCard().isBlank()) {
+            filter.setIdCardBidx(idCardCrypto.blindIndex(filter.getIdCard()));
+        }
         Integer pageStart = (page - 1) * size;
         filter.setPageStart(pageStart);
         filter.setPageSize(size);

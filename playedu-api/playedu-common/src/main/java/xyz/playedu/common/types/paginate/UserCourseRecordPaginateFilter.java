@@ -28,6 +28,7 @@ public class UserCourseRecordPaginateFilter {
     private String email;
     private String name;
     private String idCard;
+    private String idCardBidx;
     private String sortField;
     private String sortAlgo;
     private Integer pageStart;

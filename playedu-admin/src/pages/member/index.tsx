@@ -36,6 +36,7 @@ interface DataType {
   created_at?: string;
   credit1?: number;
   email: string;
+  mobile?: string;
   id_card?: string;
   is_active?: number;
   is_lock?: number;
@@ -52,6 +53,8 @@ interface LocalSearchParamsInterface {
   size?: number;
   nickname?: string;
   email?: string;
+  mobile?: string;
+  id_card?: string;
 }
 
 const MemberPage = () => {
@@ -62,11 +65,15 @@ const MemberPage = () => {
     size: "10",
     nickname: "",
     email: "",
+    mobile: "",
+    id_card: "",
   });
   const page = parseInt(searchParams.get("page") || "1");
   const size = parseInt(searchParams.get("size") || "10");
   const nickname = searchParams.get("nickname");
   const email = searchParams.get("email");
+  const mobile = searchParams.get("mobile");
+  const idCard = searchParams.get("id_card");
 
   const [loading, setLoading] = useState(false);
   const [list, setList] = useState<DataType[]>([]);
@@ -141,6 +148,18 @@ const MemberPage = () => {
       width: 200,
       dataIndex: "email",
       render: (email: string) => <span>{email}</span>,
+    },
+    {
+      title: "手机号",
+      width: 160,
+      dataIndex: "mobile",
+      render: (mobile: string) => <span>{mobile || "-"}</span>,
+    },
+    {
+      title: "身份证号",
+      width: 200,
+      dataIndex: "id_card",
+      render: (idCard: string) => <span>{idCard || "-"}</span>,
     },
     {
       title: "加入时间",
@@ -250,6 +269,8 @@ const MemberPage = () => {
       .userList(page, size, {
         name: nickname,
         email: email,
+        mobile: mobile,
+        id_card: idCard,
         dep_ids: dep_ids.join(","),
       })
       .then((res: any) => {
@@ -268,6 +289,8 @@ const MemberPage = () => {
       size: 10,
       nickname: "",
       email: "",
+      mobile: "",
+      id_card: "",
     });
     setList([]);
     setRefresh(!refresh);
@@ -297,6 +320,12 @@ const MemberPage = () => {
         }
         if (typeof params.email !== "undefined") {
           prev.set("email", params.email);
+        }
+        if (typeof params.mobile !== "undefined") {
+          prev.set("mobile", params.mobile);
+        }
+        if (typeof params.id_card !== "undefined") {
+          prev.set("id_card", params.id_card);
         }
         if (typeof params.page !== "undefined") {
           prev.set("page", params.page + "");
@@ -361,7 +390,10 @@ const MemberPage = () => {
           <div className="playedu-main-title float-left mb-24">
             学员 | {selLabel}
           </div>
-          <div className="float-left j-b-flex mb-24">
+          <div
+            className="float-left j-b-flex mb-24"
+            style={{ flexWrap: "wrap", gap: 16 }}
+          >
             <div className="d-flex">
               {!ldapEnabled && (
                 <PerButton
@@ -403,8 +435,16 @@ const MemberPage = () => {
                 </Link>
               )} */}
             </div>
-            <div className="d-flex">
-              <div className="d-flex mr-24">
+            <div
+              className="d-flex"
+              style={{
+                width: "100%",
+                flexWrap: "wrap",
+                justifyContent: "flex-end",
+                gap: "12px 16px",
+              }}
+            >
+              <div className="d-flex" style={{ flexShrink: 0, gap: 8 }}>
                 <Typography.Text>姓名：</Typography.Text>
                 <Input
                   value={nickname || ""}
@@ -413,12 +453,12 @@ const MemberPage = () => {
                       nickname: e.target.value,
                     });
                   }}
-                  style={{ width: 160 }}
+                  style={{ width: 140 }}
                   placeholder="请输入姓名关键字"
                   allowClear
                 />
               </div>
-              <div className="d-flex mr-24">
+              <div className="d-flex" style={{ flexShrink: 0, gap: 8 }}>
                 <Typography.Text>邮箱：</Typography.Text>
                 <Input
                   value={email || ""}
@@ -427,12 +467,42 @@ const MemberPage = () => {
                       email: e.target.value,
                     });
                   }}
-                  style={{ width: 160 }}
+                  style={{ width: 150 }}
                   placeholder="请输入邮箱账号"
                   allowClear
                 />
               </div>
-              <div className="d-flex">
+              <div className="d-flex" style={{ flexShrink: 0, gap: 8 }}>
+                <Typography.Text>手机号：</Typography.Text>
+                <Input
+                  value={mobile || ""}
+                  onChange={(e) => {
+                    resetLocalSearchParams({
+                      mobile: e.target.value,
+                    });
+                  }}
+                  style={{ width: 150 }}
+                  maxLength={11}
+                  placeholder="请输入完整手机号"
+                  allowClear
+                />
+              </div>
+              <div className="d-flex" style={{ flexShrink: 0, gap: 8 }}>
+                <Typography.Text>身份证号：</Typography.Text>
+                <Input
+                  value={idCard || ""}
+                  onChange={(e) => {
+                    resetLocalSearchParams({
+                      id_card: e.target.value,
+                    });
+                  }}
+                  style={{ width: 180 }}
+                  maxLength={18}
+                  placeholder="请输入完整身份证号"
+                  allowClear
+                />
+              </div>
+              <div className="d-flex" style={{ flexShrink: 0 }}>
                 <Button className="mr-16" onClick={resetData}>
                   重 置
                 </Button>

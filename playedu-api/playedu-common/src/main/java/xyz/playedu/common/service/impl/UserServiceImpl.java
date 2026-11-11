@@ -34,6 +34,8 @@ import xyz.playedu.common.service.UserService;
 import xyz.playedu.common.types.paginate.PaginationResult;
 import xyz.playedu.common.types.paginate.UserPaginateFilter;
 import xyz.playedu.common.util.HelperUtil;
+import xyz.playedu.common.util.IdCardCrypto;
+import xyz.playedu.common.util.IdCardValidator;
 
 /**
  * @author tengteng
@@ -44,6 +46,13 @@ import xyz.playedu.common.util.HelperUtil;
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
     @Autowired private UserDepartmentService userDepartmentService;
+    @Autowired private IdCardCrypto idCardCrypto;
+
+    private void validateIdCard(String idCard) {
+        if (idCard != null && !idCard.isBlank() && !IdCardValidator.isValid(idCard)) {
+            throw new ServiceException("请输入正确的身份证号");
+        }
+    }
 
     @Override
     public boolean emailIsExists(String email) {
@@ -52,7 +61,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    public boolean mobileIsExists(String mobile, Integer excludeUserId) {
+        return count(
+                        query().getWrapper()
+                                .eq("mobile", mobile)
+                                .ne(excludeUserId != null, "id", excludeUserId))
+                > 0;
+    }
+
+    @Override
     public PaginationResult<User> paginate(int page, int size, UserPaginateFilter filter) {
+        if (filter.getIdCard() != null && !filter.getIdCard().isBlank()) {
+            filter.setIdCardBidx(idCardCrypto.blindIndex(filter.getIdCard()));
+        }
         filter.setPageStart((page - 1) * size);
         filter.setPageSize(size);
 
@@ -94,16 +115,32 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             String password,
             String idCard,
             Integer[] depIds) {
+        return createWithDepIds(email, name, null, avatar, password, idCard, depIds);
+    }
+
+    @Override
+    @Transactional
+    public User createWithDepIds(
+            String email,
+            String name,
+            String mobile,
+            Integer avatar,
+            String password,
+            String idCard,
+            Integer[] depIds) {
+        validateIdCard(idCard);
         String salt = HelperUtil.randomString(6);
         String passwordHashed = HelperUtil.MD5(password + salt);
 
         User user = new User();
         user.setEmail(email);
         user.setName(name);
+        user.setMobile(mobile == null || mobile.isBlank() ? null : mobile);
         user.setAvatar(avatar);
         user.setPassword(passwordHashed);
         user.setSalt(salt);
-        user.setIdCard(idCard);
+        user.setIdCard(idCardCrypto.encrypt(idCard));
+        user.setIdCardBidx(idCardCrypto.blindIndex(idCard));
         user.setCredit1(0);
         user.setIsSetPassword(0);
         user.setIsActive(1);
@@ -113,7 +150,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setCreatedAt(new Date());
         user.setUpdatedAt(new Date());
 
-        if (idCard != null && !idCard.isEmpty()) {
+        if (idCard != null && !idCard.isBlank()) {
             user.setVerifyAt(new Date());
             user.setIsVerify(1);
         }
@@ -133,33 +170,63 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             String password,
             String idCard,
             Integer[] depIds) {
+        return updateWithDepIds(
+                user, email, name, user.getMobile(), avatar, password, idCard, depIds);
+    }
+
+    @Override
+    @Transactional
+    public User updateWithDepIds(
+            User user,
+            String email,
+            String name,
+            String mobile,
+            Integer avatar,
+            String password,
+            String idCard,
+            Integer[] depIds) {
+        validateIdCard(idCard);
         User newUser = new User();
         newUser.setId(user.getId());
         newUser.setEmail(email);
         newUser.setName(name);
+        newUser.setMobile(mobile == null || mobile.isBlank() ? null : mobile);
         newUser.setAvatar(avatar);
-        newUser.setIdCard(idCard);
+        if (idCard != null) {
+            newUser.setIdCard(idCardCrypto.encrypt(idCard));
+            newUser.setIdCardBidx(idCardCrypto.blindIndex(idCard));
+        }
 
         if (password != null && !password.isEmpty()) {
             newUser.setPassword(HelperUtil.MD5(password + user.getSalt()));
         }
 
-        if (newUser.getName() != null
-                && !newUser.getName().isEmpty()
-                && newUser.getIdCard() != null
-                && !newUser.getIdCard().isEmpty()) {
+        boolean hasIdCard =
+                idCard == null
+                        ? user.getIdCard() != null && !user.getIdCard().isEmpty()
+                        : !idCard.isBlank();
+        boolean clearVerifyAt = false;
+        if (newUser.getName() != null && !newUser.getName().isEmpty() && hasIdCard) {
             if (user.getVerifyAt() == null) {
                 newUser.setIsVerify(1);
                 newUser.setVerifyAt(new Date());
             }
-        } else {
-            if (user.getIsVerify() == 1) {
-                newUser.setIsVerify(0);
-                newUser.setVerifyAt(null);
-            }
+        } else if (Integer.valueOf(1).equals(user.getIsVerify())) {
+            newUser.setIsVerify(0);
+            newUser.setVerifyAt(null);
+            clearVerifyAt = user.getVerifyAt() != null;
         }
 
         updateById(newUser);
+        if (idCard != null && newUser.getIdCard().isEmpty()) {
+            lambdaUpdate().eq(User::getId, user.getId()).set(User::getIdCardBidx, null).update();
+        }
+        if (newUser.getMobile() == null) {
+            lambdaUpdate().eq(User::getId, user.getId()).set(User::getMobile, null).update();
+        }
+        if (clearVerifyAt) {
+            lambdaUpdate().eq(User::getId, user.getId()).set(User::getVerifyAt, null).update();
+        }
         userDepartmentService.resetStoreDepIds(newUser.getId(), depIds);
         return newUser;
     }
