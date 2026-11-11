@@ -75,6 +75,51 @@ const columnOptions: { label: string; value: OptionalColumnKey }[] = [
   { label: "所属部门", value: "department" },
 ];
 
+const optionalColumnKeys = columnOptions.map((option) => option.value);
+const columnStorageKey = "playedu.admin.member.visibleColumns.v1";
+
+const getDefaultVisibleColumns = (): OptionalColumnKey[] =>
+  columnOptions.map((option) => option.value);
+
+const isOptionalColumnKey = (value: unknown): value is OptionalColumnKey =>
+  typeof value === "string" &&
+  optionalColumnKeys.some((key) => key === value);
+
+const readVisibleColumns = (): OptionalColumnKey[] => {
+  const defaultColumns = getDefaultVisibleColumns();
+
+  if (typeof window === "undefined") {
+    return defaultColumns;
+  }
+
+  try {
+    const savedValue = window.localStorage.getItem(columnStorageKey);
+
+    if (savedValue === null) {
+      return defaultColumns;
+    }
+
+    const parsedValue: unknown = JSON.parse(savedValue);
+
+    if (!Array.isArray(parsedValue)) {
+      return defaultColumns;
+    }
+
+    const validColumns = parsedValue.filter(isOptionalColumnKey);
+    const uniqueColumns = validColumns.filter(
+      (key, index) => validColumns.indexOf(key) === index
+    );
+
+    if (parsedValue.length > 0 && uniqueColumns.length === 0) {
+      return defaultColumns;
+    }
+
+    return uniqueColumns;
+  } catch {
+    return defaultColumns;
+  }
+};
+
 const MemberPage = () => {
   const result = new URLSearchParams(useLocation().search);
 
@@ -98,9 +143,23 @@ const MemberPage = () => {
   const [resourceUrl, setResourceUrl] = useState<ResourceUrlModel>({});
   const [total, setTotal] = useState(0);
   const [refresh, setRefresh] = useState(false);
-  const [visibleColumns, setVisibleColumns] = useState<OptionalColumnKey[]>(
-    columnOptions.map((option) => option.value)
-  );
+  const [visibleColumns, setVisibleColumns] =
+    useState<OptionalColumnKey[]>(readVisibleColumns);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        columnStorageKey,
+        JSON.stringify(visibleColumns)
+      );
+    } catch (error) {
+      console.warn("保存表头字段设置失败", error);
+    }
+  }, [visibleColumns]);
   const [dep_ids, setDepIds] = useState<number[]>([]);
   const [selLabel, setLabel] = useState<string>(
     result.get("label") ? String(result.get("label")) : "全部部门"
@@ -273,12 +332,19 @@ const MemberPage = () => {
     },
   ];
 
-  const visibleTableColumns = columns.filter(
-    (column) =>
-      column.key === "name" ||
-      column.key === "action" ||
-      visibleColumns.some((key) => key === column.key)
-  );
+  const visibleTableColumns = columns.filter((column) => {
+    const key = column.key;
+
+    if (key === "name" || key === "action") {
+      return true;
+    }
+
+    if (!isOptionalColumnKey(key)) {
+      return true;
+    }
+
+    return visibleColumns.includes(key);
+  });
 
   useEffect(() => {
     getData();
@@ -562,9 +628,10 @@ const MemberPage = () => {
                   style={{ flexDirection: "column", gap: 8 }}
                   options={columnOptions}
                   value={visibleColumns}
-                  onChange={(values) =>
-                    setVisibleColumns(values as OptionalColumnKey[])
-                  }
+                  onChange={(values) => {
+                    const nextColumns = values.filter(isOptionalColumnKey);
+                    setVisibleColumns(nextColumns);
+                  }}
                 />
               }
               trigger="click"
