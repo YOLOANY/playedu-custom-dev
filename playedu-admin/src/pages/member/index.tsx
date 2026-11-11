@@ -453,7 +453,7 @@ const MemberPage = () => {
                       nickname: e.target.value,
                     });
                   }}
-                  style={{ width: 140 }}
+                  style={{ width: 100 }}
                   placeholder="请输入姓名关键字"
                   allowClear
                 />
@@ -467,7 +467,7 @@ const MemberPage = () => {
                       email: e.target.value,
                     });
                   }}
-                  style={{ width: 150 }}
+                  style={{ width: 100 }}
                   placeholder="请输入邮箱账号"
                   allowClear
                 />
@@ -481,7 +481,7 @@ const MemberPage = () => {
                       mobile: e.target.value,
                     });
                   }}
-                  style={{ width: 150 }}
+                  style={{ width: 100 }}
                   maxLength={11}
                   placeholder="请输入完整手机号"
                   allowClear
@@ -496,7 +496,7 @@ const MemberPage = () => {
                       id_card: e.target.value,
                     });
                   }}
-                  style={{ width: 180 }}
+                  style={{ width: 100 }}
                   maxLength={18}
                   placeholder="请输入完整身份证号"
                   allowClear
