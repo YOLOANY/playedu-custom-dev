@@ -544,6 +544,26 @@ const MemberPage = () => {
                 gap: "12px 16px",
               }}
             >
+            <div className="d-flex" style={{ flexShrink: 0 }}>
+              <Popover
+                content={
+                  <Checkbox.Group
+                    className="d-flex"
+                    style={{ flexDirection: "column", gap: 8 }}
+                    options={columnOptions}
+                    value={visibleColumns}
+                    onChange={(values) => {
+                      const nextColumns = values.filter(isOptionalColumnKey);
+                      setVisibleColumns(nextColumns);
+                    }}
+                  />
+                }
+                trigger="click"
+                placement="bottomLeft"
+              >
+                <Button icon={<SettingOutlined />}>筛选</Button>
+              </Popover>
+            </div>
               <div className="d-flex" style={{ flexShrink: 0, gap: 8 }}>
                 <Typography.Text>姓名：</Typography.Text>
                 <Input
@@ -553,7 +573,7 @@ const MemberPage = () => {
                       nickname: e.target.value,
                     });
                   }}
-                  style={{ width: 100 }}
+                  style={{ width: 120 }}
                   placeholder="请输入姓名关键字"
                   allowClear
                 />
@@ -567,7 +587,7 @@ const MemberPage = () => {
                       email: e.target.value,
                     });
                   }}
-                  style={{ width: 100 }}
+                  style={{ width: 120 }}
                   placeholder="请输入邮箱账号"
                   allowClear
                 />
@@ -581,7 +601,7 @@ const MemberPage = () => {
                       mobile: e.target.value,
                     });
                   }}
-                  style={{ width: 100 }}
+                  style={{ width: 120 }}
                   maxLength={11}
                   placeholder="请输入完整手机号"
                   allowClear
@@ -596,7 +616,7 @@ const MemberPage = () => {
                       id_card: e.target.value,
                     });
                   }}
-                  style={{ width: 100 }}
+                  style={{ width: 120 }}
                   maxLength={18}
                   placeholder="请输入完整身份证号"
                   allowClear
@@ -619,26 +639,6 @@ const MemberPage = () => {
                 </Button>
               </div>
             </div>
-          </div>
-          <div className="float-left j-r-flex mb-16">
-            <Popover
-              content={
-                <Checkbox.Group
-                  className="d-flex"
-                  style={{ flexDirection: "column", gap: 8 }}
-                  options={columnOptions}
-                  value={visibleColumns}
-                  onChange={(values) => {
-                    const nextColumns = values.filter(isOptionalColumnKey);
-                    setVisibleColumns(nextColumns);
-                  }}
-                />
-              }
-              trigger="click"
-              placement="bottomRight"
-            >
-              <Button icon={<SettingOutlined />}>表头字段</Button>
-            </Popover>
           </div>
           <div className="float-left">
             <Table
