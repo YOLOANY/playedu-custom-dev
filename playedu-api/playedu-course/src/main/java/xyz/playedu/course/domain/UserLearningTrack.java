@@ -17,6 +17,7 @@ package xyz.playedu.course.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import java.util.Date;
 
 @Data
 public class UserLearningTrack {
@@ -29,4 +30,15 @@ public class UserLearningTrack {
     @JsonProperty("course_title")
     private String courseTitle;
 
+    @JsonProperty("hour_id")
+    private Integer hourId;
+
+    @JsonProperty("hour_title")
+    private String hourTitle;
+
+    @JsonProperty("hour_type")
+    private String hourType;
+
+    @JsonProperty("finished_at")
+    private Data finishedAt;
 }
