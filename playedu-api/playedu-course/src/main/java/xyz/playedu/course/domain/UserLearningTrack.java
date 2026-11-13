@@ -40,5 +40,5 @@ public class UserLearningTrack {
     private String hourType;
 
     @JsonProperty("finished_at")
-    private Data finishedAt;
+    private Date finishedAt;
 }
