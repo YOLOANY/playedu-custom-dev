@@ -23,6 +23,7 @@ import xyz.playedu.common.types.mapper.UserCourseHourRecordUserCountMapper;
 import xyz.playedu.common.types.mapper.UserCourseHourRecordUserFirstCreatedAtMapper;
 import xyz.playedu.common.types.paginate.UserCourseHourRecordPaginateFilter;
 import xyz.playedu.course.domain.UserCourseHourRecord;
+import xyz.playedu.course.domain.UserLearningTrack;
 
 /**
  * @author tengteng
@@ -49,4 +50,8 @@ public interface UserCourseHourRecordMapper extends BaseMapper<UserCourseHourRec
     List<UserCourseHourRecord> getUserPerCourseEarliestRecord(Integer userId);
 
     List<UserCourseHourRecord> getCoursePerUserEarliestRecord(Integer courseId);
+
+    List<UserLearningTrack> learningTracks(Integer userId, Integer pageStart, Integer pageSize);
+
+    Long learningTracksCount(Integer userId);
 }

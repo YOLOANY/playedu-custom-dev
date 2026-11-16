@@ -16,8 +16,8 @@
 package xyz.playedu.course.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
 import java.util.Date;
+import lombok.Data;
 
 @Data
 public class UserLearningTrack {

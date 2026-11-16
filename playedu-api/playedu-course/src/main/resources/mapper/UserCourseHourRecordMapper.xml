@@ -46,7 +46,7 @@
             AND `course_id` IN (<foreach collection="courseIds" item="courseId" separator=",">#{courseId}</foreach>)
         </if>
         <if test="isFinished != null">
-            AND `is_finisehd` = #{isFinished}
+            AND `is_finished` = #{isFinished}
         </if>
         GROUP BY `course_id`;
     </select>
@@ -59,7 +59,7 @@
                 AND `t`.`user_id` = #{userId}
             </if>
             <if test="isFinished != null">
-                AND `t`.`is_finisehd` = #{isFinished}
+                AND `t`.`is_finished` = #{isFinished}
             </if>
         </where>
         <if test="sortAlgo == 'asc'">
@@ -111,7 +111,7 @@
                 AND `t`.`user_id` = #{userId}
             </if>
             <if test="isFinished != null">
-                AND `t`.`is_finisehd` = #{isFinished}
+                AND `t`.`is_finished` = #{isFinished}
             </if>
         </where>
     </select>
@@ -124,7 +124,7 @@
             AND `user_id` IN (<foreach collection="userIds" item="userId" separator=",">#{userId}</foreach>)
         </if>
         <if test="isFinished != null">
-            AND `is_finisehd` = #{isFinished}
+            AND `is_finished` = #{isFinished}
         </if>
         GROUP BY `user_id`;
     </select>
@@ -188,5 +188,34 @@
                     `user_id`) AS `b` ON `b`.`min_created_at` = `a`.`created_at`
                 AND `b`.`course_id` = `a`.`course_id`
                 AND `b`.`user_id` = `a`.`user_id`;
+    </select>
+
+    <select id="learningTracks" resultType="xyz.playedu.course.domain.UserLearningTrack">
+        SELECT
+            r.id AS record_id,
+            r.course_id,
+            c.title AS course_title,
+            r.hour_id,
+            h.title AS hour_title,
+            h.type AS hour_type,
+            r.finished_at
+        FROM user_course_hour_records AS r
+        INNER JOIN course_hour AS h ON r.hour_id = h.id
+        INNER JOIN courses AS c ON r.course_id = c.id
+        WHERE
+            r.user_id = #{userId}
+            AND r.is_finished = 1
+            AND r.finished_at IS NOT NULL
+        ORDER BY r.finished_at DESC
+        LIMIT #{pageStart}, #{pageSize};
+    </select>
+
+    <select id="learningTracksCount" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM user_course_hour_records AS r
+        WHERE
+            r.user_id = #{userId}
+            AND r.is_finished = 1
+            AND r.finished_at IS NOT NULL;
     </select>
 </mapper>

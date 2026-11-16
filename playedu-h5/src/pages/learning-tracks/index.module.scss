@@ -1,0 +1,93 @@
+.content {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 20px 20px calc(40px + env(safe-area-inset-bottom));
+  text-align: left;
+}
+
+.summary {
+  margin-bottom: 24px;
+  font-size: 14px;
+  line-height: 22px;
+  color: rgba(0, 0, 0, 0.45);
+
+  strong {
+    margin: 0 4px;
+    font-size: 20px;
+    color: #ff4d4f;
+  }
+}
+
+.loading-box {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 0;
+}
+
+.month-title {
+  margin: 8px 0 16px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 22px;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.track-item {
+  position: relative;
+  margin-left: 5px;
+  padding: 0 0 24px 24px;
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.dot {
+  position: absolute;
+  top: 6px;
+  left: -5px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ff4d4f;
+  box-shadow: 0 0 0 4px rgba(255, 77, 79, 0.1);
+}
+
+.track-content {
+  padding: 0 0 4px;
+}
+
+.course-title {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: rgba(0, 0, 0, 0.88);
+}
+
+.hour-title {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 22px;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.finished-at {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.35);
+}
+
+.load-more {
+  padding: 12px 0;
+  text-align: center;
+  font-size: 14px;
+  line-height: 22px;
+  color: #ff4d4f;
+}
+
+.list-end {
+  padding: 12px 0;
+  text-align: center;
+  font-size: 13px;
+  line-height: 20px;
+  color: rgba(0, 0, 0, 0.35);
+}

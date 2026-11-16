@@ -20,6 +20,7 @@ const ChangeDepartmentPage = lazy(
 );
 //学习页面
 const StudyPage = lazy(() => import("../pages/study/index"));
+const LearningTracksPage = lazy(() => import("../pages/learning-tracks/index"));
 //课程页面
 const CoursePage = lazy(() => import("../pages/course/index"));
 const CoursePlayPage = lazy(() => import("../pages/course/video"));
@@ -96,6 +97,10 @@ const routes: RouteObject[] = [
           {
             path: "/change-department",
             element: <PrivateRoute Component={<ChangeDepartmentPage />} />,
+          },
+          {
+            path: "/learning-tracks",
+            element: <PrivateRoute Component={<LearningTracksPage />} />,
           },
           {
             path: "/course/:courseId",

@@ -40,6 +40,7 @@ import xyz.playedu.common.types.JsonResponse;
 import xyz.playedu.common.types.UploadFileInfo;
 import xyz.playedu.common.types.config.S3Config;
 import xyz.playedu.common.types.mapper.UserCourseHourRecordCourseCountMapper;
+import xyz.playedu.common.types.paginate.PaginationResult;
 import xyz.playedu.common.util.HelperUtil;
 import xyz.playedu.common.util.StringUtil;
 import xyz.playedu.course.domain.*;
@@ -415,6 +416,21 @@ public class UserController {
         data.put("user_latest_learns", userLatestLearns);
         // 获取签名url
         data.put("resource_url", resourceService.chunksPreSignUrlByIds(rids));
+
+        return JsonResponse.data(data);
+    }
+
+    @GetMapping("/learning-tracks")
+    public JsonResponse learningTracks(@RequestParam HashMap<String, Object> params) {
+        Integer page = MapUtils.getInteger(params, "page", 1);
+        Integer size = MapUtils.getInteger(params, "size", 20);
+
+        PaginationResult<UserLearningTrack> result =
+                userCourseHourRecordService.learningTracks(FCtx.getId(), page, size);
+
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("data", result.getData());
+        data.put("total", result.getTotal());
 
         return JsonResponse.data(data);
     }
