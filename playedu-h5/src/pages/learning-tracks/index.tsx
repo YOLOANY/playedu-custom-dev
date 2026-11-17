@@ -89,7 +89,9 @@ const LearningTracksPage = () => {
                   <div className={styles["track-content"]}>
                     <div className={styles["course-title"]}>{item.course_title}</div>
                     <div className={styles["hour-title"]}>{item.hour_title}</div>
-                    <div className={styles["finished-at"]}>{item.finished_at}</div>
+                    <div className={styles["finished-at"]}>
+                      {moment(item.finished_at).format("YYYY年MM月DD日 HH:mm")}
+                    </div>
                   </div>
                 </div>
               ))}
