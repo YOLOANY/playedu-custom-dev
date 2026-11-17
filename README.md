@@ -1,8 +1,8 @@
-# PlayEdu 二次开发：学员学习轨迹
+# PlayEdu 二次开发：学习轨迹与学员管理
 
-基于 PlayEdu 2.3 开源版进行二次开发，在保留原有培训功能的基础上，为 H5 学员端增加学习轨迹、分页加载和界面优化。
+基于 PlayEdu 2.3 开源版进行二次开发，在保留原有培训功能的基础上，为 H5 学员端增加学习轨迹、分页加载和界面优化，并扩展管理后台的学员手机号、身份证号管理能力。
 
-二次开发分支：`playedu-second-dev`
+二次开发分支：`main`
 
 ## 二次开发功能
 
@@ -28,6 +28,24 @@
 - “我的 → 更多”弹层中，切换部门、学习轨迹、更换头像、修改密码位于同一个白色卡片。
 - 退出登录保留下方独立卡片。
 - 保留原项目的文字、样式风格和既有操作逻辑。
+
+### 管理员学员管理
+
+- 创建、编辑学员时可填写手机号和身份证号，两个字段均允许为空。
+- 手机号按中国大陆 11 位号码格式校验，数据库使用可空唯一索引，列表支持完整手机号精确筛选。
+- 身份证号仅支持 18 位号码，后端校验格式、真实出生日期和校验码。
+- 身份证号保存前去除首尾空格，并将尾号 `X` 统一为大写。
+- 学员列表的手机号、身份证号列可显示或隐藏，搜索栏与表格使用一致的左右边界。
+- 学员学习记录支持通过完整身份证号筛选。
+
+### 敏感信息保护
+
+- 身份证号使用 `AES/GCM/NoPadding` 加密后存入 `users.id_card`，不保存明文。
+- 每次加密使用 12 字节随机 IV 和 128 位认证标签，密文采用带 `v1:` 前缀的 Base64 格式。
+- 使用 `HmacSHA256` 生成 64 位十六进制盲索引，存入 `users.id_card_bidx`，支持完整身份证号精确查询。
+- 盲索引使用独立域分隔串，不与身份证号密文混用；该字段不会序列化到前端。
+- 姓名、邮箱、手机号、身份证号分别受管理员数据权限控制，无权限时输出脱敏内容。
+- 管理操作日志会屏蔽密码、Token 和身份证号等敏感字段。
 
 ## 功能入口
 
@@ -119,6 +137,38 @@ playedu-h5/src/routes/index.tsx
 playedu-h5/src/playedu.d.ts
 ```
 
+管理后台：
+
+```text
+playedu-admin/src/pages/member/index.tsx
+playedu-admin/src/pages/member/compenents/create.tsx
+playedu-admin/src/pages/member/compenents/update.tsx
+playedu-admin/src/pages/member/index.module.less
+playedu-admin/src/api/user.ts
+```
+
+学员管理后端：
+
+```text
+playedu-api/playedu-api/src/main/java/xyz/playedu/api/request/backend/UserRequest.java
+playedu-api/playedu-common/src/main/java/xyz/playedu/common/domain/User.java
+playedu-api/playedu-common/src/main/java/xyz/playedu/common/service/impl/UserServiceImpl.java
+playedu-api/playedu-common/src/main/java/xyz/playedu/common/util/IdCardCrypto.java
+playedu-api/playedu-common/src/main/java/xyz/playedu/common/util/IdCardValidator.java
+playedu-api/playedu-common/src/main/java/xyz/playedu/common/constant/BPermissionConstant.java
+playedu-api/playedu-common/src/main/resources/mapper/UserMapper.xml
+playedu-api/playedu-course/src/main/resources/mapper/UserCourseRecordMapper.xml
+playedu-api/playedu-system/src/main/java/xyz/playedu/system/aspectj/AdminLogAspect.java
+```
+
+数据库升级与旧数据迁移：
+
+```text
+docker/mysql/upgrade/20261105_add_mobile_to_users.sql
+docker/mysql/upgrade/20261110_encrypt_id_card.sql
+playedu-api/playedu-system/src/main/java/xyz/playedu/system/checks/IdCardMigrationRunner.java
+```
+
 ## 技术栈
 
 Java 17、Spring Boot 3.3.4、MyBatis-Plus、MySQL 8、React 18、TypeScript、Vite 4、Ant Design Mobile、Docker Compose。
@@ -175,6 +225,19 @@ docker compose up -d --build
 
 根据实际环境修改 `.env`。生产环境应更换数据库密码、JWT 密钥和身份证加密密钥，不要提交真实 `.env`、Token 或数据库备份。
 
+### 身份证加密配置
+
+Docker Compose 使用以下环境变量：
+
+```dotenv
+PLAYEDU_ID_CARD_ENCRYPTION_KEY=<Base64编码的32字节密钥>
+PLAYEDU_ID_CARD_MIGRATION_ENABLED=false
+```
+
+密钥解码后必须正好为 32 字节，可使用 `openssl rand -base64 32` 生成。密钥为空、Base64 格式错误或长度不正确时，后端会拒绝启动。真实密钥只保存在部署环境的 `.env`，不要写入 README、Git、聊天记录或测试数据。更换密钥前必须制定既有密文的迁移方案，不能直接覆盖。
+
+数据库升级文件位于 `docker/mysql/upgrade`。已有环境升级前必须备份并核对现有字段、索引和数据；当前二开虚拟机已完成手机号、身份证号字段升级及旧数据迁移，不要重复执行这些 SQL 或迁移 Runner。正常运行时保持 `PLAYEDU_ID_CARD_MIGRATION_ENABLED=false`，不要删除数据库数据卷。
+
 | 端 | 默认地址 |
 | --- | --- |
 | PC 学员端 | `http://localhost:9800` |
@@ -206,6 +269,24 @@ H5 使用 `VITE_APP_URL=/api/`。经过既有 Nginx 代理规则后，API 函数
 - 课程列表还受课程显示状态和指派范围影响。
 
 只插入课时完成记录不能完整模拟其他页面。测试数据应分别核对依赖，不应随意修改真实业务数据。
+
+### 学员管理
+
+1. 创建和编辑学员时，分别验证空手机号、合法手机号、格式错误手机号和重复手机号。
+2. 使用合法测试身份证号验证保存和精确筛选，确认数据库中只有密文与盲索引。
+3. 分别使用有、无敏感字段数据权限的管理员，确认列表展示和脱敏结果。
+4. 检查管理日志，确认请求参数和响应结果不记录身份证号明文。
+5. 确认学员列表的搜索栏、表格左右边界一致，列显示设置可正常保存。
+
+身份证校验、加密盲索引和日志脱敏已有以下单元测试：
+
+```text
+playedu-api/playedu-common/src/test/java/xyz/playedu/common/util/IdCardCryptoTest.java
+playedu-api/playedu-common/src/test/java/xyz/playedu/common/util/IdCardValidatorTest.java
+playedu-api/playedu-system/src/test/java/xyz/playedu/system/aspectj/AdminLogAspectTest.java
+```
+
+这些测试文件的存在不等同于当前环境已经执行通过，发布前仍需运行测试并保留结果。
 
 ## 使用注意事项
 
