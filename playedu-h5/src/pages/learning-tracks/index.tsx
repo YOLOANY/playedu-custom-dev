@@ -59,7 +59,7 @@ const LearningTracksPage = () => {
 
   return (
     <div className="main-body">
-      <div className="main-header">
+      <div className={`main-header ${styles["sticky-header"]}`}>
         <Image
           className="back-icon"
           src={backIcon}
