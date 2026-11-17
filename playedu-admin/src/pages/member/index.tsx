@@ -9,14 +9,17 @@ import {
   message,
   Image,
   Dropdown,
+  Checkbox,
+  Popover,
 } from "antd";
 import type { MenuProps } from "antd";
 import type { ColumnsType } from "antd/es/table";
-// import styles from "./index.module.less";
+import styles from "./index.module.less";
 import {
   PlusOutlined,
   DownOutlined,
   ExclamationCircleFilled,
+  SettingOutlined,
 } from "@ant-design/icons";
 import { user } from "../../api/index";
 import { dateFormat } from "../../utils/index";
@@ -57,6 +60,66 @@ interface LocalSearchParamsInterface {
   id_card?: string;
 }
 
+type OptionalColumnKey =
+  | "email"
+  | "mobile"
+  | "id_card"
+  | "created_at"
+  | "department";
+
+const columnOptions: { label: string; value: OptionalColumnKey }[] = [
+  { label: "所属部门", value: "department" },
+  { label: "登录邮箱", value: "email" },
+  { label: "手机号", value: "mobile" },
+  { label: "身份证号", value: "id_card" },
+  { label: "加入时间", value: "created_at" },
+];
+
+const optionalColumnKeys = columnOptions.map((option) => option.value);
+const columnStorageKey = "playedu.admin.member.visibleColumns.v1";
+
+const getDefaultVisibleColumns = (): OptionalColumnKey[] =>
+  columnOptions.map((option) => option.value);
+
+const isOptionalColumnKey = (value: unknown): value is OptionalColumnKey =>
+  typeof value === "string" &&
+  optionalColumnKeys.some((key) => key === value);
+
+const readVisibleColumns = (): OptionalColumnKey[] => {
+  const defaultColumns = getDefaultVisibleColumns();
+
+  if (typeof window === "undefined") {
+    return defaultColumns;
+  }
+
+  try {
+    const savedValue = window.localStorage.getItem(columnStorageKey);
+
+    if (savedValue === null) {
+      return defaultColumns;
+    }
+
+    const parsedValue: unknown = JSON.parse(savedValue);
+
+    if (!Array.isArray(parsedValue)) {
+      return defaultColumns;
+    }
+
+    const validColumns = parsedValue.filter(isOptionalColumnKey);
+    const uniqueColumns = validColumns.filter(
+      (key, index) => validColumns.indexOf(key) === index
+    );
+
+    if (parsedValue.length > 0 && uniqueColumns.length === 0) {
+      return defaultColumns;
+    }
+
+    return uniqueColumns;
+  } catch {
+    return defaultColumns;
+  }
+};
+
 const MemberPage = () => {
   const result = new URLSearchParams(useLocation().search);
 
@@ -80,6 +143,23 @@ const MemberPage = () => {
   const [resourceUrl, setResourceUrl] = useState<ResourceUrlModel>({});
   const [total, setTotal] = useState(0);
   const [refresh, setRefresh] = useState(false);
+  const [visibleColumns, setVisibleColumns] =
+    useState<OptionalColumnKey[]>(readVisibleColumns);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        columnStorageKey,
+        JSON.stringify(visibleColumns)
+      );
+    } catch (error) {
+      console.warn("保存表头字段设置失败", error);
+    }
+  }, [visibleColumns]);
   const [dep_ids, setDepIds] = useState<number[]>([]);
   const [selLabel, setLabel] = useState<string>(
     result.get("label") ? String(result.get("label")) : "全部部门"
@@ -106,6 +186,7 @@ const MemberPage = () => {
   const columns: ColumnsType<DataType> = [
     {
       title: "学员",
+      key: "name",
       dataIndex: "name",
       width: 300,
       render: (_, record: any) => (
@@ -127,7 +208,13 @@ const MemberPage = () => {
     },
     {
       title: "所属部门",
+      key: "department",
       dataIndex: "id",
+      width: 160,
+      align: "left",
+      onHeaderCell: () => ({
+        style: { whiteSpace: "nowrap", textAlign: "left" },
+      }),
       render: (id: number) => (
         <div className="float-left">
           {user_dep_ids[id] &&
@@ -145,24 +232,28 @@ const MemberPage = () => {
     },
     {
       title: "登录邮箱",
+      key: "email",
       width: 200,
       dataIndex: "email",
       render: (email: string) => <span>{email}</span>,
     },
     {
       title: "手机号",
+      key: "mobile",
       width: 160,
       dataIndex: "mobile",
       render: (mobile: string) => <span>{mobile || "-"}</span>,
     },
     {
       title: "身份证号",
+      key: "id_card",
       width: 200,
       dataIndex: "id_card",
       render: (idCard: string) => <span>{idCard || "-"}</span>,
     },
     {
       title: "加入时间",
+      key: "created_at",
       width: 200,
       dataIndex: "created_at",
       render: (text: string) => <span>{dateFormat(text)}</span>,
@@ -245,6 +336,20 @@ const MemberPage = () => {
       },
     },
   ];
+
+  const visibleTableColumns = columns.filter((column) => {
+    const key = column.key;
+
+    if (key === "name" || key === "action") {
+      return true;
+    }
+
+    if (!isOptionalColumnKey(key)) {
+      return true;
+    }
+
+    return visibleColumns.includes(key);
+  });
 
   useEffect(() => {
     getData();
@@ -364,7 +469,7 @@ const MemberPage = () => {
 
   return (
     <>
-      <div className="tree-main-body">
+      <div className={`tree-main-body ${styles.memberTree}`}>
         <div className="left-box">
           <TreeDepartment
             selected={dep_ids}
@@ -436,14 +541,44 @@ const MemberPage = () => {
               )} */}
             </div>
             <div
-              className="d-flex"
+              className={`d-flex ${styles.memberAlignedSection} ${styles.memberSearchBar}`}
               style={{
-                width: "100%",
                 flexWrap: "wrap",
-                justifyContent: "flex-end",
                 gap: "12px 16px",
               }}
             >
+              <div className="d-flex" style={{ flexShrink: 0 }}>
+                <Popover
+                  content={
+                    <Checkbox.Group
+                      className="d-flex"
+                      style={{
+                        flexDirection: "column",
+                        alignItems: "flex-start",
+                        gap: 8,
+                        textAlign: "left",
+                      }}
+                      options={[
+                        {
+                          label: "学员",
+                          value: "name",
+                          disabled: true,
+                        },
+                        ...columnOptions,
+                      ]}
+                      value={["name", ...visibleColumns]}
+                      onChange={(values) => {
+                        const nextColumns = values.filter(isOptionalColumnKey);
+                        setVisibleColumns(nextColumns);
+                      }}
+                    />
+                  }
+                  trigger="click"
+                  placement="bottomLeft"
+                >
+                  <Button icon={<SettingOutlined />}>筛选</Button>
+                </Popover>
+              </div>
               <div className="d-flex" style={{ flexShrink: 0, gap: 8 }}>
                 <Typography.Text>姓名：</Typography.Text>
                 <Input
@@ -453,7 +588,7 @@ const MemberPage = () => {
                       nickname: e.target.value,
                     });
                   }}
-                  style={{ width: 140 }}
+                  style={{ width: 150 }}
                   placeholder="请输入姓名关键字"
                   allowClear
                 />
@@ -496,7 +631,7 @@ const MemberPage = () => {
                       id_card: e.target.value,
                     });
                   }}
-                  style={{ width: 180 }}
+                  style={{ width: 150 }}
                   maxLength={18}
                   placeholder="请输入完整身份证号"
                   allowClear
@@ -520,9 +655,9 @@ const MemberPage = () => {
               </div>
             </div>
           </div>
-          <div className="float-left">
+          <div className={`float-left ${styles.memberAlignedSection}`}>
             <Table
-              columns={columns}
+              columns={visibleTableColumns}
               dataSource={list}
               loading={loading}
               pagination={paginationProps}

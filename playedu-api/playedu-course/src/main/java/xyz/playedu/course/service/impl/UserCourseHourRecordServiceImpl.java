@@ -26,6 +26,7 @@ import xyz.playedu.common.types.mapper.UserCourseHourRecordUserFirstCreatedAtMap
 import xyz.playedu.common.types.paginate.PaginationResult;
 import xyz.playedu.common.types.paginate.UserCourseHourRecordPaginateFilter;
 import xyz.playedu.course.domain.UserCourseHourRecord;
+import xyz.playedu.course.domain.UserLearningTrack;
 import xyz.playedu.course.mapper.UserCourseHourRecordMapper;
 import xyz.playedu.course.service.UserCourseHourRecordService;
 
@@ -185,5 +186,16 @@ public class UserCourseHourRecordServiceImpl
     @Override
     public List<UserCourseHourRecord> getCoursePerUserEarliestRecord(Integer courseId) {
         return getBaseMapper().getCoursePerUserEarliestRecord(courseId);
+    }
+
+    @Override
+    public PaginationResult<UserLearningTrack> learningTracks(Integer userId, int page, int size) {
+        int pageStart = (page - 1) * size;
+
+        PaginationResult<UserLearningTrack> pageResult = new PaginationResult<>();
+        pageResult.setData(getBaseMapper().learningTracks(userId, pageStart, size));
+        pageResult.setTotal(getBaseMapper().learningTracksCount(userId));
+
+        return pageResult;
     }
 }

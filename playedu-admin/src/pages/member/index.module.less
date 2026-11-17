@@ -1,0 +1,46 @@
+.memberAlignedSection {
+  box-sizing: border-box;
+  width: 100%;
+  margin-inline: 0;
+}
+
+.memberSearchBar {
+  justify-content: space-between;
+}
+
+.memberTree {
+  :global(.left-box) {
+    flex: 0 0 200px;
+    width: 200px;
+  }
+
+  :global(.right-box) {
+    width: calc(100% - 201px);
+    min-width: 0;
+  }
+
+  :global(.playedu-tree) {
+    :global(.category-label),
+    :global(.ant-tree-title),
+    :global(.tree-title-elli) {
+      white-space: nowrap;
+    }
+
+    :global(.category-label) {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    :global(.ant-tree-node-content-wrapper),
+    :global(.ant-tree-title) {
+      min-width: 0;
+    }
+
+    :global(.tree-title-elli) {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      -webkit-line-clamp: unset;
+    }
+  }
+}

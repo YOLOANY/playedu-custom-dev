@@ -54,6 +54,16 @@ declare global {
     updated_at: string;
   }
 
+  interface UserLearningTrackModel {
+    record_id: number;
+    course_id: number;
+    course_title: string;
+    hour_id: number;
+    hour_title: string;
+    hour_type: string;
+    finished_at: string;
+  }
+
   interface UserModel {
     id: number;
     name: string;

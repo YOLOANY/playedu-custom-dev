@@ -286,6 +286,15 @@ const MemberPage = () => {
             >
               切换部门
             </div>
+            <div
+              className={styles["button-item"]}
+              onClick={() => {
+                setVisible(false);
+                navigate("/learning-tracks");
+              }}
+            >
+              学习轨迹
+            </div>
             <ImageUploader
               value={fileList}
               onChange={setFileList}
