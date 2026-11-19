@@ -26,6 +26,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import xyz.playedu.api.request.frontend.ChangePasswordRequest;
+import xyz.playedu.api.service.CreditSemesterService;
 import xyz.playedu.common.constant.BackendConstant;
 import xyz.playedu.common.constant.CommonConstant;
 import xyz.playedu.common.constant.FrontendConstant;
@@ -65,6 +66,10 @@ public class UserController {
     @Autowired private UserCourseRecordService userCourseRecordService;
 
     @Autowired private UserCourseHourRecordService userCourseHourRecordService;
+
+    @Autowired private UserCreditRecordService userCreditRecordService;
+
+    @Autowired private CreditSemesterService creditSemesterService;
 
     @Autowired private UserLearnDurationStatsService userLearnDurationStatsService;
 
@@ -348,7 +353,10 @@ public class UserController {
         }
 
         List<Integer> courseIds =
-                userCourseHourRecords.stream().map(UserCourseHourRecord::getCourseId).toList();
+                userCourseHourRecords.stream()
+                        .map(UserCourseHourRecord::getCourseId)
+                        .distinct()
+                        .toList();
         List<Integer> hourIds =
                 userCourseHourRecords.stream().map(UserCourseHourRecord::getHourId).toList();
         Map<Integer, UserCourseHourRecord> hour2Record =
@@ -359,7 +367,8 @@ public class UserController {
                         .collect(
                                 Collectors.toMap(
                                         UserCourseHourRecord::getCourseId,
-                                        UserCourseHourRecord::getHourId));
+                                        UserCourseHourRecord::getHourId,
+                                        (first, ignored) -> first));
 
         // 线上课
         Map<Integer, Course> courses =
@@ -432,6 +441,32 @@ public class UserController {
         data.put("data", result.getData());
         data.put("total", result.getTotal());
 
+        return JsonResponse.data(data);
+    }
+
+    @SneakyThrows
+    @GetMapping("/credits")
+    public JsonResponse credits(@RequestParam HashMap<String, Object> params) {
+        Integer page = MapUtils.getInteger(params, "page", 1);
+        Integer size = MapUtils.getInteger(params, "size", 20);
+        User user = userService.findOrFail(FCtx.getId());
+        PaginationResult<UserCreditRecord> result =
+                userCreditRecordService.paginate(FCtx.getId(), page, size);
+
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("total_credit", user.getCredit1() == null ? 0 : user.getCredit1());
+        data.put(
+                "semester_credit",
+                userCreditRecordService.sumCredit(
+                        FCtx.getId(),
+                        creditSemesterService.getStartTime(),
+                        creditSemesterService.getEndTime()));
+        data.put("semester", creditSemesterService.getName());
+        data.put("semester_start", creditSemesterService.getStart().toString());
+        data.put("semester_end", creditSemesterService.getEnd().toString());
+        data.put("time_zone", creditSemesterService.getTimeZone());
+        data.put("data", result.getData());
+        data.put("total", result.getTotal());
         return JsonResponse.data(data);
     }
 }

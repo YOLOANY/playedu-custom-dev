@@ -83,6 +83,14 @@ export function storeBatch(startLine: number, users: string[][]) {
   });
 }
 
+export function creditRanking(page: number, size: number) {
+  return client.get("/backend/v1/user/credit-ranking", { page, size });
+}
+
+export function departmentCreditSummary() {
+  return client.get("/backend/v1/department/credit-summary", {});
+}
+
 export function learnStats(id: number) {
   return client.get(`/backend/v1/user/${id}/learn-stats`, {});
 }

@@ -18,6 +18,7 @@ package xyz.playedu.course.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import xyz.playedu.common.types.mapper.UserCourseHourRecordCourseCountMapper;
 import xyz.playedu.common.types.mapper.UserCourseHourRecordUserCountMapper;
 import xyz.playedu.common.types.mapper.UserCourseHourRecordUserFirstCreatedAtMapper;
@@ -32,6 +33,14 @@ import xyz.playedu.course.domain.UserLearningTrack;
  */
 @Mapper
 public interface UserCourseHourRecordMapper extends BaseMapper<UserCourseHourRecord> {
+    UserCourseHourRecord findLatest(
+            @Param("userId") Integer userId,
+            @Param("courseId") Integer courseId,
+            @Param("hourId") Integer hourId);
+
+    Long countDistinctFinished(
+            @Param("userId") Integer userId, @Param("courseId") Integer courseId);
+
     List<UserCourseHourRecord> getUserLatestRecords(Integer userId, Integer size);
 
     List<UserCourseHourRecordCourseCountMapper> getUserCourseHourCount(

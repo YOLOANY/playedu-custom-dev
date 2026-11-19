@@ -322,6 +322,7 @@ public class MigrationCheck implements CommandLineRunner {
                                                       `type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '课时类型',
                                                       `rid` int(11) NOT NULL DEFAULT 0 COMMENT '资源ID',
                                                       `duration` int(11) NOT NULL DEFAULT 0 COMMENT '时长[s]',
+                                                      `credit` int(11) NOT NULL DEFAULT 0 COMMENT '课时学分',
                                                       `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                                                       `deleted` tinyint(1) unsigned NULL DEFAULT 0 COMMENT '删除标志[0:存在,1:删除]',
                                                       PRIMARY KEY (`id`),
@@ -519,6 +520,32 @@ public class MigrationCheck implements CommandLineRunner {
                     add(
                             new HashMap<>() {
                                 {
+                                    put("table", "user_credit_records");
+                                    put("name", "20261117_10_00_00_user_credit_records");
+                                    put(
+                                            "sql",
+                                            """
+                                                    CREATE TABLE `user_credit_records` (
+                                                      `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                                      `user_id` int(11) NOT NULL COMMENT '学员ID',
+                                                      `course_id` int(11) NOT NULL COMMENT '课程ID',
+                                                      `hour_id` int(11) NOT NULL COMMENT '课时ID',
+                                                      `source_type` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'COURSE_HOUR' COMMENT '来源类型',
+                                                      `credit` int(11) NOT NULL DEFAULT 0 COMMENT '学分快照',
+                                                      `course_title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '课程标题快照',
+                                                      `hour_title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '课时标题快照',
+                                                      `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '获得时间',
+                                                      PRIMARY KEY (`id`),
+                                                      UNIQUE KEY `uk_user_credit_user_hour` (`user_id`,`hour_id`),
+                                                      KEY `idx_user_credit_user_created` (`user_id`,`created_at`,`id`)
+                                                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT '学员学分流水表';
+                                                    """);
+                                }
+                            });
+
+                    add(
+                            new HashMap<>() {
+                                {
                                     put("table", "user_course_records");
                                     put("name", "20231208_14_00_00_user_course_records");
                                     put(
@@ -688,7 +715,8 @@ public class MigrationCheck implements CommandLineRunner {
                                                       `deleted` tinyint(1) unsigned NULL DEFAULT 0 COMMENT '删除标志[0:存在,1:删除]',
                                                       PRIMARY KEY (`id`),
                                                       UNIQUE KEY `email` (`email`),
-                                                      KEY `idx_users_id_card_bidx` (`id_card_bidx`)
+                                                      KEY `idx_users_id_card_bidx` (`id_card_bidx`),
+                                                      KEY `idx_users_credit_id` (`credit1`,`id`)
                                                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT '学员表';
                                                     """);
                                 }

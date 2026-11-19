@@ -13,12 +13,19 @@
             <result property="type" column="type" jdbcType="VARCHAR"/>
             <result property="rid" column="rid" jdbcType="INTEGER"/>
             <result property="duration" column="duration" jdbcType="INTEGER"/>
+            <result property="credit" column="credit" jdbcType="INTEGER"/>
             <result property="createdAt" column="created_at" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,course_id,chapter_id,
         sort,title,type,
-        rid,duration,created_at
+        rid,duration,credit,created_at
     </sql>
+
+    <select id="getTotalCreditByCourseId" resultType="java.lang.Integer">
+        SELECT COALESCE(SUM(credit), 0)
+        FROM course_hour
+        WHERE course_id = #{courseId} AND deleted = 0
+    </select>
 </mapper>

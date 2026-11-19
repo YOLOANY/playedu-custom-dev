@@ -42,11 +42,7 @@ public class UserCourseHourRecordServiceImpl
 
     @Override
     public UserCourseHourRecord find(Integer userId, Integer courseId, Integer hourId) {
-        return getOne(
-                query().getWrapper()
-                        .eq("user_id", userId)
-                        .eq("course_id", courseId)
-                        .eq("hour_id", hourId));
+        return getBaseMapper().findLatest(userId, courseId, hourId);
     }
 
     @Override
@@ -95,12 +91,7 @@ public class UserCourseHourRecordServiceImpl
 
     @Override
     public Integer getFinishedHourCount(Integer userId, Integer courseId) {
-        return Math.toIntExact(
-                count(
-                        query().getWrapper()
-                                .eq("user_id", userId)
-                                .eq("course_id", courseId)
-                                .eq("is_finished", 1)));
+        return Math.toIntExact(getBaseMapper().countDistinctFinished(userId, courseId));
     }
 
     @Override

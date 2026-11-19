@@ -295,6 +295,15 @@ const MemberPage = () => {
             >
               学习轨迹
             </div>
+            <div
+              className={styles["button-item"]}
+              onClick={() => {
+                setVisible(false);
+                navigate("/my-credits");
+              }}
+            >
+              我的学分
+            </div>
             <ImageUploader
               value={fileList}
               onChange={setFileList}

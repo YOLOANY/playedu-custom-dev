@@ -129,7 +129,10 @@ declare global {
 
   interface CourseHourModel {
     id?: number;
+    chapter_id?: number;
+    sort?: number;
     duration: number;
+    credit: number;
     name: string;
     rid: number;
     type: string;

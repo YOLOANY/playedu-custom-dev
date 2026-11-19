@@ -160,7 +160,12 @@ const MemberPage = () => {
       console.warn("保存表头字段设置失败", error);
     }
   }, [visibleColumns]);
-  const [dep_ids, setDepIds] = useState<number[]>([]);
+  const initialDepartmentId = Number(result.get("did"));
+  const [dep_ids, setDepIds] = useState<number[]>(
+    Number.isInteger(initialDepartmentId) && initialDepartmentId > 0
+      ? [initialDepartmentId]
+      : []
+  );
   const [selLabel, setLabel] = useState<string>(
     result.get("label") ? String(result.get("label")) : "全部部门"
   );
@@ -169,7 +174,6 @@ const MemberPage = () => {
   const [mid, setMid] = useState(0);
   const [user_dep_ids, setUserDepIds] = useState<DepIdsModel>({});
   const [departments, setDepartments] = useState<DepartmentsModel>({});
-  const [did, setDid] = useState(Number(result.get("did")));
   const ldapEnabled = useSelector(
     (state: any) => state.systemConfig.value["ldap-enabled"]
   );

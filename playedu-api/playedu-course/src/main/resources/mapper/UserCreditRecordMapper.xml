@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.playedu.course.mapper.UserCreditRecordMapper">
+    <resultMap id="BaseResultMap" type="xyz.playedu.course.domain.UserCreditRecord">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="courseId" column="course_id" jdbcType="INTEGER"/>
+        <result property="hourId" column="hour_id" jdbcType="INTEGER"/>
+        <result property="sourceType" column="source_type" jdbcType="VARCHAR"/>
+        <result property="credit" column="credit" jdbcType="INTEGER"/>
+        <result property="courseTitle" column="course_title" jdbcType="VARCHAR"/>
+        <result property="hourTitle" column="hour_title" jdbcType="VARCHAR"/>
+        <result property="createdAt" column="created_at" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,user_id,course_id,hour_id,source_type,credit,course_title,hour_title,created_at
+    </sql>
+
+    <select id="paginate" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM user_credit_records
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC, id DESC
+        LIMIT #{pageStart}, #{pageSize}
+    </select>
+
+    <select id="paginateCount" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM user_credit_records
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="sumCredit" resultType="java.lang.Long">
+        SELECT COALESCE(SUM(credit), 0)
+        FROM user_credit_records
+        WHERE user_id = #{userId}
+            AND created_at &gt;= #{startAt}
+            AND created_at &lt; #{endAt}
+    </select>
+</mapper>

@@ -179,6 +179,15 @@ public class UserController {
         return JsonResponse.data(data);
     }
 
+    @BackendPermission(slug = BPermissionConstant.USER_LEARN)
+    @GetMapping("/credit-ranking")
+    @Log(title = "学员-学分排名", businessType = BusinessTypeConstant.GET)
+    public JsonResponse creditRanking(@RequestParam HashMap<String, Object> params) {
+        params.put("sort_field", "credit1");
+        params.put("sort_algo", "desc");
+        return index(params);
+    }
+
     @BackendPermission(slug = BPermissionConstant.USER_STORE)
     @GetMapping("/create")
     @Log(title = "学员-新建", businessType = BusinessTypeConstant.GET)

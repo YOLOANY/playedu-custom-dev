@@ -322,9 +322,9 @@ export const CourseCreate: React.FC<PropInterface> = ({
     }
   };
 
-  const delHour = (id: number) => {
+  const delHour = (hourKey: number) => {
     const data = [...treeData];
-    const index = data.findIndex((i: any) => i.rid === id);
+    const index = data.findIndex((hour) => (hour.id ?? hour.rid) === hourKey);
     if (index >= 0) {
       data.splice(index, 1);
     }
@@ -339,17 +339,17 @@ export const CourseCreate: React.FC<PropInterface> = ({
   };
 
   const transHour = (arr: any) => {
-    setHours(arr);
     const data = [...treeData];
     const newArr: any = [];
     for (let i = 0; i < arr.length; i++) {
       data.map((item: any) => {
-        if (item.rid === arr[i]) {
+        if ((item.id ?? item.rid) === arr[i]) {
           newArr.push(item);
         }
       });
     }
     setTreeData(newArr);
+    setHours(newArr.map((item: any) => item.rid));
   };
 
   const delAttachments = (id: number) => {
@@ -420,10 +420,12 @@ export const CourseCreate: React.FC<PropInterface> = ({
     });
   };
 
-  const delChapterHour = (index: number, id: number) => {
+  const delChapterHour = (index: number, hourKey: number) => {
     const keys = [...chapterHours];
     const data = [...chapters];
-    const current = data[index].hours.findIndex((i: any) => i.rid === id);
+    const current = data[index].hours.findIndex(
+      (hour) => (hour.id ?? hour.rid) === hourKey
+    );
     if (current >= 0) {
       data[index].hours.splice(current, 1);
     }
@@ -440,20 +442,20 @@ export const CourseCreate: React.FC<PropInterface> = ({
   };
 
   const transChapterHour = (index: number, arr: any) => {
-    const keys = [...chapterHours];
-    keys[index] = arr;
-    setChapterHours(keys);
     const data = [...chapters];
     const newArr: any = [];
     for (let i = 0; i < arr.length; i++) {
       data[index].hours.map((item: any) => {
-        if (item.rid === arr[i]) {
+        if ((item.id ?? item.rid) === arr[i]) {
           newArr.push(item);
         }
       });
     }
     data[index].hours = newArr;
     setChapters(data);
+    const keys = [...chapterHours];
+    keys[index] = newArr.map((item: any) => item.rid);
+    setChapterHours(keys);
   };
 
   const changeChapterHours = (arr: any) => {
@@ -464,6 +466,36 @@ export const CourseCreate: React.FC<PropInterface> = ({
       });
     }
     return newArr;
+  };
+
+  const totalCredit = [...treeData, ...chapters.flatMap((item) => item.hours)]
+    .reduce((total, hour) => total + (hour.credit ?? 0), 0);
+
+  const changeHourCredit = (hourKey: number, credit: number) => {
+    setTreeData((current) =>
+      current.map((hour) =>
+        (hour.id ?? hour.rid) === hourKey ? { ...hour, credit } : hour
+      )
+    );
+  };
+
+  const changeChapterHourCredit = (
+    chapterIndex: number,
+    hourKey: number,
+    credit: number
+  ) => {
+    setChapters((current) =>
+      current.map((chapter, index) =>
+        index === chapterIndex
+          ? {
+              ...chapter,
+              hours: chapter.hours.map((hour) =>
+                (hour.id ?? hour.rid) === hourKey ? { ...hour, credit } : hour
+              ),
+            }
+          : chapter
+      )
+    );
   };
 
   return (
@@ -766,6 +798,9 @@ export const CourseCreate: React.FC<PropInterface> = ({
                   </Radio>
                 </Radio.Group>
               </Form.Item>
+              <div className="helper-text ml-120 mb-16">
+                课程总学分：{totalCredit}，课时学分须为非负整数。
+              </div>
               {chapterType === 0 && (
                 <div className="c-flex mb-24">
                   <Form.Item>
@@ -793,6 +828,7 @@ export const CourseCreate: React.FC<PropInterface> = ({
                         onUpdate={(arr: any[]) => {
                           transHour(arr);
                         }}
+                        onCreditChange={changeHourCredit}
                       />
                     )}
                   </div>
@@ -849,6 +885,9 @@ export const CourseCreate: React.FC<PropInterface> = ({
                                 onUpdate={(arr: any[]) => {
                                   transChapterHour(index, arr);
                                 }}
+                                onCreditChange={(hourKey, credit) =>
+                                  changeChapterHourCredit(index, hourKey, credit)
+                                }
                               />
                             )}
                           </div>

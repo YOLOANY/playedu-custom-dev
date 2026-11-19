@@ -233,6 +233,7 @@ public class CourseController {
                                 setType(hourItem.getType());
                                 setDuration(hourItem.getDuration());
                                 setRid(hourItem.getRid());
+                                setCredit(hourItem.getCredit() == null ? 0 : hourItem.getCredit());
                                 setCreatedAt(now);
                             }
                         });
@@ -275,6 +276,7 @@ public class CourseController {
                                     setType(hourItem.getType());
                                     setDuration(hourItem.getDuration());
                                     setRid(hourItem.getRid());
+                                    setCredit(hourItem.getCredit() == null ? 0 : hourItem.getCredit());
                                     setCreatedAt(now);
                                 }
                             });
@@ -362,6 +364,7 @@ public class CourseController {
         data.put("category_ids", categoryIds); // 已关联的分类
         data.put("chapters", chapters);
         data.put("hours", hours.stream().collect(Collectors.groupingBy(CourseHour::getChapterId)));
+        data.put("total_credit", hourService.getTotalCreditByCourseId(course.getId()));
         data.put("attachments", attachments);
         data.put("deps", deps);
         // 获取签名url

@@ -18,6 +18,7 @@ package xyz.playedu.common.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import xyz.playedu.common.domain.User;
 import xyz.playedu.common.types.paginate.UserPaginateFilter;
 
@@ -32,4 +33,6 @@ public interface UserMapper extends BaseMapper<User> {
     List<User> paginate(UserPaginateFilter filter);
 
     Long paginateCount(UserPaginateFilter filter);
+
+    int incrementCredit(@Param("userId") Integer userId, @Param("credit") Integer credit);
 }

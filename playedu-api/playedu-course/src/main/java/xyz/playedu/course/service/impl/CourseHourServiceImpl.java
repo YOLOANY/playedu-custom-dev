@@ -49,13 +49,17 @@ public class CourseHourServiceImpl extends ServiceImpl<CourseHourMapper, CourseH
             Integer chapterId,
             Integer sort,
             String title,
-            Integer duration) {
+            Integer duration,
+            Integer credit) {
         CourseHour hour = new CourseHour();
         hour.setId(courseHour.getId());
         hour.setChapterId(chapterId);
         hour.setSort(sort);
         hour.setTitle(title);
         hour.setDuration(duration);
+        if (credit != null) {
+            hour.setCredit(credit);
+        }
 
         updateById(hour);
     }
@@ -73,7 +77,8 @@ public class CourseHourServiceImpl extends ServiceImpl<CourseHourMapper, CourseH
             String title,
             String type,
             Integer rid,
-            Integer duration) {
+            Integer duration,
+            Integer credit) {
         CourseHour hour = new CourseHour();
         hour.setCourseId(courseId);
         hour.setChapterId(chapterId);
@@ -82,11 +87,17 @@ public class CourseHourServiceImpl extends ServiceImpl<CourseHourMapper, CourseH
         hour.setType(type);
         hour.setRid(rid);
         hour.setDuration(duration);
+        hour.setCredit(credit == null ? 0 : credit);
         hour.setCreatedAt(new Date());
 
         save(hour);
 
         return hour;
+    }
+
+    @Override
+    public Integer getTotalCreditByCourseId(Integer courseId) {
+        return baseMapper.getTotalCreditByCourseId(courseId);
     }
 
     @Override

@@ -23,9 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import xyz.playedu.api.event.UserCourseHourFinishedEvent;
 import xyz.playedu.api.event.UserLearnCourseUpdateEvent;
 import xyz.playedu.api.request.frontend.CourseHourRecordRequest;
+import xyz.playedu.api.service.UserCourseHourCompletionService;
 import xyz.playedu.common.context.FCtx;
 import xyz.playedu.common.types.JsonResponse;
 import xyz.playedu.common.util.MemoryDistributedLock;
@@ -56,6 +56,8 @@ public class HourController {
     @Autowired private ResourceService resourceService;
 
     @Autowired private UserCourseHourRecordService userCourseHourRecordService;
+
+    @Autowired private UserCourseHourCompletionService userCourseHourCompletionService;
 
     // ------- CACHE ----------
     @Autowired private UserCanSeeCourseCache userCanSeeCourseCache;
@@ -135,14 +137,8 @@ public class HourController {
         }
 
         try {
-            boolean isFinished =
-                    userCourseHourRecordService.storeOrUpdate(
-                            FCtx.getId(), courseId, hour.getId(), duration, hour.getDuration());
-            if (isFinished) {
-                ctx.publishEvent(
-                        new UserCourseHourFinishedEvent(
-                                this, FCtx.getId(), courseId, hour.getId()));
-            }
+            userCourseHourCompletionService.complete(
+                    FCtx.getId(), courseId, hour.getId(), duration, hour.getDuration());
         } finally {
             // 此处未考虑上面代码执行失败释放锁
             distributedLock.releaseLock(lockKey);

@@ -16,6 +16,8 @@
 package xyz.playedu.api.request.backend;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.Data;
@@ -37,8 +39,12 @@ public class CourseHourMultiRequest {
         private Integer sort;
         private String type;
         private Integer rid;
+
+        @Min(value = 0, message = "学分不能小于0")
+        private Integer credit;
     }
 
+    @Valid
     @NotNull(message = "hours参数不存在")
     private List<HourItem> hours;
 }

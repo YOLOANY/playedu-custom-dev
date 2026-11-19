@@ -16,6 +16,7 @@
 package xyz.playedu.api.request.backend;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -46,4 +47,7 @@ public class CourseHourRequest {
 
     @NotNull(message = "rid参数不存在")
     private Integer rid;
+
+    @Min(value = 0, message = "学分不能小于0")
+    private Integer credit;
 }
