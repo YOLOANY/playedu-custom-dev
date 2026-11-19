@@ -1,0 +1,149 @@
+.page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  background: #f7f8fa;
+}
+
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  float: none;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.content {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 20px 20px calc(40px + env(safe-area-inset-bottom));
+  text-align: left;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.summary-card {
+  min-height: 132px;
+  box-sizing: border-box;
+  padding: 20px 16px;
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.credit-number {
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 40px;
+  color: #ff4d4f;
+}
+
+.summary-label {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 22px;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.semester-name {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.35);
+  overflow-wrap: anywhere;
+}
+
+.section-title {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: rgba(0, 0, 0, 0.88);
+}
+
+.loading-box {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 12px;
+}
+
+.credit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.credit-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-sizing: border-box;
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 12px;
+}
+
+.credit-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.course-title {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: rgba(0, 0, 0, 0.88);
+  overflow-wrap: anywhere;
+}
+
+.hour-title {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 22px;
+  color: rgba(0, 0, 0, 0.65);
+  overflow-wrap: anywhere;
+}
+
+.award-time {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.35);
+}
+
+.credit-value {
+  flex-shrink: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 30px;
+  color: #ff4d4f;
+  white-space: nowrap;
+}
+
+.load-more {
+  padding: 16px 0 12px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 22px;
+  color: #ff4d4f;
+}
+
+.list-end {
+  padding: 16px 0 12px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 20px;
+  color: rgba(0, 0, 0, 0.35);
+}
