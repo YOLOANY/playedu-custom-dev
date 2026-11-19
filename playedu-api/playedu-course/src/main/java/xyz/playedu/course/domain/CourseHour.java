@@ -58,6 +58,8 @@ public class CourseHour implements Serializable {
     /** 时长[s] */
     private Integer duration;
 
+    private Integer credit;
+
     /** */
     @JsonIgnore private Date createdAt;
 
@@ -101,6 +103,9 @@ public class CourseHour implements Serializable {
                 && (this.getDuration() == null
                         ? other.getDuration() == null
                         : this.getDuration().equals(other.getDuration()))
+                && (this.getCredit() == null
+                        ? other.getCredit() == null
+                        : this.getCredit().equals(other.getCredit()))
                 && (this.getCreatedAt() == null
                         ? other.getCreatedAt() == null
                         : this.getCreatedAt().equals(other.getCreatedAt()))
@@ -121,6 +126,7 @@ public class CourseHour implements Serializable {
         result = prime * result + ((getType() == null) ? 0 : getType().hashCode());
         result = prime * result + ((getRid() == null) ? 0 : getRid().hashCode());
         result = prime * result + ((getDuration() == null) ? 0 : getDuration().hashCode());
+        result = prime * result + ((getCredit() == null) ? 0 : getCredit().hashCode());
         result = prime * result + ((getCreatedAt() == null) ? 0 : getCreatedAt().hashCode());
         result = prime * result + ((getDeleted() == null) ? 0 : getDeleted().hashCode());
         return result;
@@ -140,6 +146,7 @@ public class CourseHour implements Serializable {
         sb.append(", type=").append(type);
         sb.append(", rid=").append(rid);
         sb.append(", duration=").append(duration);
+        sb.append(", credit=").append(credit);
         sb.append(", createdAt=").append(createdAt);
         sb.append(", deleted=").append(deleted);
         sb.append(", serialVersionUID=").append(serialVersionUID);

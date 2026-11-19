@@ -21,6 +21,7 @@ const ChangeDepartmentPage = lazy(
 //学习页面
 const StudyPage = lazy(() => import("../pages/study/index"));
 const LearningTracksPage = lazy(() => import("../pages/learning-tracks/index"));
+const MyCreditsPage = lazy(() => import("../pages/my-credits/index"));
 //课程页面
 const CoursePage = lazy(() => import("../pages/course/index"));
 const CoursePlayPage = lazy(() => import("../pages/course/video"));
@@ -101,6 +102,10 @@ const routes: RouteObject[] = [
           {
             path: "/learning-tracks",
             element: <PrivateRoute Component={<LearningTracksPage />} />,
+          },
+          {
+            path: "/my-credits",
+            element: <PrivateRoute Component={<MyCreditsPage />} />,
           },
           {
             path: "/course/:courseId",

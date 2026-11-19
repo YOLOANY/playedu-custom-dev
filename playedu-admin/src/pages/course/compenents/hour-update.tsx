@@ -90,10 +90,13 @@ export const CourseHourUpdate: React.FC<PropInterface> = ({
       for (let i = 0; i < data.length; i++) {
         arr.push({
           duration: data[i].duration,
+          credit: data[i].credit ?? 0,
           type: data[i].type,
           name: data[i].title,
           rid: data[i].rid,
           id: data[i].id,
+          chapter_id: data[i].chapter_id,
+          sort: data[i].sort,
         });
         keys.push(data[i].rid);
       }
@@ -116,6 +119,7 @@ export const CourseHourUpdate: React.FC<PropInterface> = ({
         title: videos[i].name,
         type: videos[i].type,
         duration: videos[i].duration,
+        credit: 0,
         rid: videos[i].rid,
       });
     }
@@ -144,6 +148,7 @@ export const CourseHourUpdate: React.FC<PropInterface> = ({
         title: videos[i].name,
         type: videos[i].type,
         duration: videos[i].duration,
+        credit: 0,
         rid: videos[i].rid,
       });
     }
@@ -158,7 +163,7 @@ export const CourseHourUpdate: React.FC<PropInterface> = ({
     });
   };
 
-  const delHour = (hid: number) => {
+  const delHour = (hourKey: number) => {
     const data = [...treeData];
     confirm({
       title: "操作确认",
@@ -168,7 +173,9 @@ export const CourseHourUpdate: React.FC<PropInterface> = ({
       okText: "确认",
       cancelText: "取消",
       onOk() {
-        const index = data.findIndex((i: any) => i.rid === hid);
+        const index = data.findIndex(
+          (hour) => (hour.id ?? hour.rid) === hourKey
+        );
         let delId = data[index].id;
         if (index >= 0) {
           data.splice(index, 1);
@@ -194,19 +201,19 @@ export const CourseHourUpdate: React.FC<PropInterface> = ({
   };
 
   const transHour = (arr: any) => {
-    setHours(arr);
     const data = [...treeData];
     const newArr: any = [];
     const hourIds: any = [];
     for (let i = 0; i < arr.length; i++) {
       data.map((item: any) => {
-        if (item.rid === arr[i]) {
+        if ((item.id ?? item.rid) === arr[i]) {
           newArr.push(item);
           hourIds.push(item.id);
         }
       });
     }
     setTreeData(newArr);
+    setHours(newArr.map((item: any) => item.rid));
     courseHour.transCourseHour(id, hourIds).then((res: any) => {
       console.log("ok");
     });
@@ -273,7 +280,7 @@ export const CourseHourUpdate: React.FC<PropInterface> = ({
     });
   };
 
-  const delChapterHour = (index: number, hid: number) => {
+  const delChapterHour = (index: number, hourKey: number) => {
     const keys = [...chapterHours];
     const data = [...chapters];
     confirm({
@@ -284,7 +291,9 @@ export const CourseHourUpdate: React.FC<PropInterface> = ({
       okText: "确认",
       cancelText: "取消",
       onOk() {
-        const current = data[index].hours.findIndex((i: any) => i.rid === hid);
+        const current = data[index].hours.findIndex(
+          (hour) => (hour.id ?? hour.rid) === hourKey
+        );
         let delId = data[index].hours[current].id;
         if (current >= 0) {
           data[index].hours.splice(current, 1);
@@ -313,16 +322,12 @@ export const CourseHourUpdate: React.FC<PropInterface> = ({
   };
 
   const transChapterHour = (index: number, arr: any) => {
-    const keys = [...chapterHours];
-    keys[index] = arr;
-    setChapterHours(keys);
-
     const data = [...chapters];
     const newArr: any = [];
     const hourIds: any = [];
     for (let i = 0; i < arr.length; i++) {
       data[index].hours.map((item: any) => {
-        if (item.rid === arr[i]) {
+        if ((item.id ?? item.rid) === arr[i]) {
           newArr.push(item);
           hourIds.push(item.id);
         }
@@ -330,6 +335,9 @@ export const CourseHourUpdate: React.FC<PropInterface> = ({
     }
     data[index].hours = newArr;
     setChapters(data);
+    const keys = [...chapterHours];
+    keys[index] = newArr.map((item: any) => item.rid);
+    setChapterHours(keys);
     courseHour.transCourseHour(id, hourIds).then((res: any) => {
       console.log("ok");
     });
@@ -345,19 +353,95 @@ export const CourseHourUpdate: React.FC<PropInterface> = ({
     return newArr;
   };
 
+  const totalCredit = [...treeData, ...chapters.flatMap((item) => item.hours)]
+    .reduce((total, hour) => total + (hour.credit ?? 0), 0);
+
+  const changeHourCredit = (hourKey: number, credit: number) => {
+    setTreeData((current) =>
+      current.map((hour) =>
+        (hour.id ?? hour.rid) === hourKey ? { ...hour, credit } : hour
+      )
+    );
+  };
+
+  const changeChapterHourCredit = (
+    chapterIndex: number,
+    hourKey: number,
+    credit: number
+  ) => {
+    setChapters((current) =>
+      current.map((chapter, index) =>
+        index === chapterIndex
+          ? {
+              ...chapter,
+              hours: chapter.hours.map((hour) =>
+                (hour.id ?? hour.rid) === hourKey ? { ...hour, credit } : hour
+              ),
+            }
+          : chapter
+      )
+    );
+  };
+
+  const saveHour = (hour: CourseHourModel, chapterId: number, sort: number) => {
+    if (!hour.id) {
+      return;
+    }
+    courseHour
+      .updateCourseHour(
+        id,
+        hour.id,
+        chapterId,
+        hour.name,
+        hour.type,
+        hour.duration,
+        hour.rid,
+        sort,
+        hour.credit ?? 0
+      )
+      .then(() => message.success("课时学分保存成功"));
+  };
+
+  const saveHourCredit = (hourKey: number) => {
+    const index = treeData.findIndex(
+      (hour) => (hour.id ?? hour.rid) === hourKey
+    );
+    if (index < 0) {
+      return;
+    }
+    const hour = treeData[index];
+    saveHour(hour, 0, hour.sort ?? index);
+  };
+
+  const saveChapterHourCredit = (chapterIndex: number, hourKey: number) => {
+    const chapter = chapters[chapterIndex];
+    if (!chapter.id) {
+      return;
+    }
+    const index = chapter.hours.findIndex(
+      (hour) => (hour.id ?? hour.rid) === hourKey
+    );
+    if (index < 0) {
+      return;
+    }
+    const hour = chapter.hours[index];
+    saveHour(hour, chapter.id, hour.sort ?? index);
+  };
+
   return (
     <>
       {open ? (
         <Drawer
           title="课时管理"
           onClose={onCancel}
-          maskClosable={false}
+          maskClosable={true}
           open={true}
           width={634}
         >
           <div className={styles["top-content"]}>
             <p>1.线上课课时调整及时生效，操作不可逆，请谨慎操作。</p>
             <p>2.课时调整后，已有学习进度会在学员学习时重新计算。</p>
+            <p>3.课程总学分：{totalCredit}，修改学分只影响之后发放的学分。</p>
           </div>
           <div className="float-left mt-24">
             <SelectResource
@@ -422,6 +506,8 @@ export const CourseHourUpdate: React.FC<PropInterface> = ({
                           onUpdate={(arr: any[]) => {
                             transHour(arr);
                           }}
+                          onCreditChange={changeHourCredit}
+                          onCreditSave={saveHourCredit}
                         />
                       )}
                     </div>
@@ -482,6 +568,12 @@ export const CourseHourUpdate: React.FC<PropInterface> = ({
                                   onUpdate={(arr: any[]) => {
                                     transChapterHour(index, arr);
                                   }}
+                                  onCreditChange={(hourKey, credit) =>
+                                    changeChapterHourCredit(index, hourKey, credit)
+                                  }
+                                  onCreditSave={(hourKey) =>
+                                    saveChapterHourCredit(index, hourKey)
+                                  }
                                 />
                               )}
                             </div>

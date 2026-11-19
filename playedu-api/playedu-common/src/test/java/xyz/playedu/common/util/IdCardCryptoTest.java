@@ -38,7 +38,7 @@ class IdCardCryptoTest {
     @Test
     void rejectsTamperingAndLegacyPlaintext() {
         String encrypted = crypto.encrypt(TEST_ID);
-        int index = encrypted.length() - 3;
+        int index = "v1:".length();
         char replacement = encrypted.charAt(index) == 'A' ? 'B' : 'A';
         String tampered =
                 encrypted.substring(0, index) + replacement + encrypted.substring(index + 1);

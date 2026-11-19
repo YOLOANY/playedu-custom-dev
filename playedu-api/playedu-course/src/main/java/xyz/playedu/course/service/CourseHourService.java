@@ -30,7 +30,12 @@ public interface CourseHourService extends IService<CourseHour> {
     CourseHour findOrFail(Integer id, Integer courseId) throws NotFoundException;
 
     void update(
-            CourseHour courseHour, Integer chapterId, Integer sort, String title, Integer duration);
+            CourseHour courseHour,
+            Integer chapterId,
+            Integer sort,
+            String title,
+            Integer duration,
+            Integer credit);
 
     List<CourseHour> getHoursByCourseId(Integer courseId);
 
@@ -41,7 +46,10 @@ public interface CourseHourService extends IService<CourseHour> {
             String title,
             String type,
             Integer rid,
-            Integer duration);
+            Integer duration,
+            Integer credit);
+
+    Integer getTotalCreditByCourseId(Integer courseId);
 
     Integer getCountByCourseId(Integer courseId);
 

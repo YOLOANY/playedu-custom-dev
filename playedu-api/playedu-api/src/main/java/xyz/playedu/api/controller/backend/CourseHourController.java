@@ -114,7 +114,8 @@ public class CourseHourController {
                         req.getTitle(),
                         type,
                         req.getRid(),
-                        req.getDuration());
+                        req.getDuration(),
+                        req.getCredit());
         ctx.publishEvent(
                 new CourseHourCreatedEvent(
                         this,
@@ -157,6 +158,7 @@ public class CourseHourController {
                             setRid(item.getRid());
                             setTitle(item.getTitle());
                             setDuration(item.getDuration());
+                            setCredit(item.getCredit() == null ? 0 : item.getCredit());
                             setCreatedAt(now);
                         }
                     });
@@ -199,9 +201,17 @@ public class CourseHourController {
         CourseHour courseHour = hourService.findOrFail(id, courseId);
         // 章节id校验
         Integer chapterId = req.getChapterId();
-        chapterService.findOrFail(chapterId, courseId);
+        if (chapterId != 0) {
+            chapterService.findOrFail(chapterId, courseId);
+        }
 
-        hourService.update(courseHour, chapterId, req.getSort(), req.getTitle(), req.getDuration());
+        hourService.update(
+                courseHour,
+                chapterId,
+                req.getSort(),
+                req.getTitle(),
+                req.getDuration(),
+                req.getCredit());
         return JsonResponse.success();
     }
 

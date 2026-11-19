@@ -64,6 +64,29 @@ declare global {
     finished_at: string;
   }
 
+  interface UserCreditRecordModel {
+    id: number;
+    created_at: string;
+    source_type: string;
+    course_title: string;
+    hour_title: string;
+    credit: number;
+  }
+
+  interface UserCreditSummaryModel {
+    total_credit: number;
+    semester_credit: number;
+    semester: string;
+    semester_start: string;
+    semester_end: string;
+    time_zone: string;
+  }
+
+  interface UserCreditsModel extends UserCreditSummaryModel {
+    data: UserCreditRecordModel[];
+    total: number;
+  }
+
   interface UserModel {
     id: number;
     name: string;

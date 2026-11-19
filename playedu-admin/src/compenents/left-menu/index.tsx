@@ -65,6 +65,7 @@ const items = [
     <i className="iconfont icon-icon-user" />,
     [
       getItem("学员", "/member/index", null, null, null, "user-index"),
+      getItem("学分", "/member/credits", null, null, null, "user-learn"),
       getItem("部门", "/department", null, null, null, "department-cud"),
     ],
     null,

@@ -1,4 +1,4 @@
-import { message, Tree, Tooltip } from "antd";
+import { InputNumber, Tree, Tooltip } from "antd";
 import { useState, useEffect } from "react";
 import type { DataNode, TreeProps } from "antd/es/tree";
 
@@ -11,6 +11,8 @@ interface PropInterface {
   data: CourseHourModel[];
   onRemoveItem: (id: number) => void;
   onUpdate: (arr: any[]) => void;
+  onCreditChange?: (hourKey: number, credit: number) => void;
+  onCreditSave?: (hourKey: number) => void;
 }
 
 export const TreeHours = (props: PropInterface) => {
@@ -19,6 +21,7 @@ export const TreeHours = (props: PropInterface) => {
   useEffect(() => {
     const hours = props.data;
     if (hours.length === 0) {
+      setTreeData([]);
       return;
     }
     checkTree(hours);
@@ -27,33 +30,82 @@ export const TreeHours = (props: PropInterface) => {
   const checkTree = (hours: any) => {
     const arr = [];
     for (let i = 0; i < hours.length; i++) {
+      const rowKey = hours[i].id ?? hours[i].rid;
       arr.push({
         title: (
-          <div className="d-flex">
-            <div className="d-flex">
+          <div
+            className="d-flex"
+            style={{ alignItems: "center", width: "100%", gap: 12 }}
+          >
+            <div
+              className="d-flex"
+              style={{ alignItems: "center", flex: 1, minWidth: 0 }}
+            >
               <i
                 className="iconfont icon-icon-video"
                 style={{
                   fontSize: 16,
                   color: "rgba(0,0,0,0.3)",
+                  flexShrink: 0,
                 }}
               />
-              <div className="tree-video-title mr-24">{hours[i].name}</div>
+              <div
+                className="tree-video-title"
+                style={{
+                  flex: 1,
+                  width: "auto",
+                  minWidth: 0,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {hours[i].name}
+              </div>
+            </div>
+            <div
+              className="d-flex"
+              style={{
+                alignItems: "center",
+                justifyContent: "flex-end",
+                gap: 8,
+                flex: "0 0 128px",
+              }}
+            >
+              <span
+                className="helper-text"
+                style={{ whiteSpace: "nowrap", flexShrink: 0 }}
+              >
+                学分
+              </span>
+              <InputNumber
+                min={0}
+                precision={0}
+                controls={false}
+                size="small"
+                style={{ width: 88 }}
+                value={hours[i].credit ?? 0}
+                onChange={(value) =>
+                  props.onCreditChange?.(rowKey, value ?? 0)
+                }
+                onBlur={() => props.onCreditSave?.(rowKey)}
+                onMouseDown={(event) => event.stopPropagation()}
+              />
             </div>
             <Tooltip placement="top" title="可拖拽排序">
               <i
-                className="iconfont icon-icon-drag mr-16"
-                style={{ fontSize: 24 }}
+                className="iconfont icon-icon-drag"
+                style={{ fontSize: 24, flexShrink: 0 }}
               />
             </Tooltip>
             <i
               className="iconfont icon-icon-delete"
-              style={{ fontSize: 24 }}
-              onClick={() => removeItem(hours[i].rid)}
+              style={{ fontSize: 24, flexShrink: 0 }}
+              onClick={() => removeItem(rowKey)}
             />
           </div>
         ),
-        key: hours[i].rid,
+        key: rowKey,
       });
     }
     setTreeData(arr);
@@ -168,6 +220,7 @@ export const TreeHours = (props: PropInterface) => {
   return (
     <div className="playedu-tree">
       <Tree
+        className="playedu-hours-tree"
         draggable
         blockNode
         onDragEnter={onDragEnter}

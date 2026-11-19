@@ -30,6 +30,7 @@ const CourseUserPage = lazy(() => import("../pages/course/user"));
 const MemberPage = lazy(() => import("../pages/member"));
 const MemberImportPage = lazy(() => import("../pages/member/import"));
 const MemberLearnPage = lazy(() => import("../pages/member/learn"));
+const MemberCreditsPage = lazy(() => import("../pages/member/credits"));
 const MemberDepartmentProgressPage = lazy(
   () => import("../pages/member/departmentUser")
 );
@@ -134,6 +135,10 @@ const routes: RouteObject[] = [
               {
                 path: "/member/learn",
                 element: <PrivateRoute Component={<MemberLearnPage />} />,
+              },
+              {
+                path: "/member/credits",
+                element: <PrivateRoute Component={<MemberCreditsPage />} />,
               },
               {
                 path: "/member/departmentUser",

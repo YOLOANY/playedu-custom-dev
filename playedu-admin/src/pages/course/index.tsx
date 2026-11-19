@@ -10,6 +10,7 @@ import {
   Space,
   Tabs,
   Dropdown,
+  Popover,
 } from "antd";
 import { course } from "../../api";
 import {
@@ -20,7 +21,7 @@ import {
 import type { MenuProps } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { dateFormat } from "../../utils/index";
-import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { TreeDepartment, TreeCategory, PerButton } from "../../compenents";
 import type { TabsProps } from "antd";
 import { CourseCreate } from "./compenents/create";
@@ -30,8 +31,43 @@ import { CourseAttachmentUpdate } from "./compenents/attachment-update";
 import defaultThumb1 from "../../assets/thumb/thumb1.png";
 import defaultThumb2 from "../../assets/thumb/thumb2.png";
 import defaultThumb3 from "../../assets/thumb/thumb3.png";
+import styles from "./index.module.less";
 
 const { confirm } = Modal;
+
+interface DepartmentLinksProps {
+  ids: number[];
+  departments: DepartmentsModel;
+  vertical?: boolean;
+}
+
+const DepartmentLinks = ({
+  ids,
+  departments,
+  vertical = false,
+}: DepartmentLinksProps) => (
+  <>
+    {ids.map((departmentId, index) => {
+      const name = departments[departmentId];
+      return (
+        <span
+          key={departmentId}
+          className={vertical ? styles.departmentItem : undefined}
+        >
+          {index > 0 && !vertical && <span>, </span>}
+          <Link
+            className={styles.departmentLink}
+            to={`/member/index?did=${departmentId}&label=${encodeURIComponent(
+              name
+            )}`}
+          >
+            {name}
+          </Link>
+        </span>
+      );
+    })}
+  </>
+);
 
 interface DataType {
   id: React.Key;
@@ -189,7 +225,7 @@ const CoursePage = () => {
       dataIndex: "id",
       render: (id: number) => (
         <div className="float-left">
-          {course_category_ids[id].map((item: any, index: number) => {
+          {(course_category_ids[id] || []).map((item: any, index: number) => {
             return (
               <span key={index}>
                 {index === course_category_ids[id].length - 1
@@ -198,27 +234,50 @@ const CoursePage = () => {
               </span>
             );
           })}
+          {!course_category_ids[id]?.length && <span>未分类</span>}
         </div>
       ),
     },
     {
       title: "指派部门",
       dataIndex: "id",
-      render: (id: number) => (
-        <div className="float-left">
-          {course_dep_ids[id] &&
-            course_dep_ids[id].map((item: any, index: number) => {
-              return (
-                <span key={index}>
-                  {index === course_dep_ids[id].length - 1
-                    ? departments[item]
-                    : departments[item] + "、"}
-                </span>
-              );
-            })}
-          {!course_dep_ids[id] && <span>全部部门</span>}
-        </div>
-      ),
+      width: 260,
+      render: (id: number) => {
+        const departmentIds = course_dep_ids[id];
+        if (!departmentIds) {
+          return <span>全部部门</span>;
+        }
+        const visibleDepartmentIds = departmentIds.slice(0, 2);
+        const remaining = departmentIds.length - visibleDepartmentIds.length;
+        return (
+          <div className={styles.departmentCell}>
+            <DepartmentLinks
+              ids={visibleDepartmentIds}
+              departments={departments}
+            />
+            {remaining > 0 && (
+              <Popover
+                trigger="hover"
+                mouseLeaveDelay={0.2}
+                placement="topLeft"
+                content={
+                  <div className={styles.departmentPopover}>
+                    <DepartmentLinks
+                      ids={departmentIds.slice(visibleDepartmentIds.length)}
+                      departments={departments}
+                      vertical
+                    />
+                  </div>
+                }
+              >
+                <Button type="link" size="small" className={styles.departmentMore}>
+                  +{remaining}个
+                </Button>
+              </Popover>
+            )}
+          </div>
+        );
+      },
     },
     {
       title: "必修/选修",

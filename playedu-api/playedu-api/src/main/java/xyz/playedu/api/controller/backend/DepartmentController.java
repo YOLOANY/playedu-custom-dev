@@ -48,6 +48,7 @@ import xyz.playedu.course.domain.Course;
 import xyz.playedu.course.domain.UserCourseRecord;
 import xyz.playedu.course.service.CourseDepartmentUserService;
 import xyz.playedu.course.service.CourseService;
+import xyz.playedu.course.service.CreditStatisticsService;
 import xyz.playedu.course.service.UserCourseRecordService;
 
 @RestController
@@ -62,6 +63,8 @@ public class DepartmentController {
     @Autowired private UserService userService;
 
     @Autowired private CourseService courseService;
+
+    @Autowired private CreditStatisticsService creditStatisticsService;
 
     @Autowired private UserCourseRecordService userCourseRecordService;
 
@@ -104,6 +107,13 @@ public class DepartmentController {
         data.put("dep_user_count", depUserCount);
         data.put("user_total", userService.total());
         return JsonResponse.data(data);
+    }
+
+    @BackendPermission(slug = BPermissionConstant.DEPARTMENT_USER_LEARN)
+    @GetMapping("/credit-summary")
+    @Log(title = "班级-学分汇总", businessType = BusinessTypeConstant.GET)
+    public JsonResponse creditSummary() {
+        return JsonResponse.data(creditStatisticsService.departmentCreditSummary());
     }
 
     @GetMapping("/departments")

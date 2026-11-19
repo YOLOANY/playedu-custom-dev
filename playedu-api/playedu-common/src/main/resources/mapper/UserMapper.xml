@@ -150,7 +150,7 @@
                     ORDER BY `users`.`created_at` ASC
                 </when>
                 <when test="sortField == 'credit1'">
-                    ORDER BY `users`.`credit1` ASC
+                    ORDER BY `users`.`credit1` ASC, `users`.`id` ASC
                 </when>
                 <otherwise>
                     ORDER BY `users`.`id` ASC
@@ -166,7 +166,7 @@
                     ORDER BY `users`.`created_at` DESC
                 </when>
                 <when test="sortField == 'credit1'">
-                    ORDER BY `users`.`credit1` DESC
+                    ORDER BY `users`.`credit1` DESC, `users`.`id` ASC
                 </when>
                 <otherwise>
                     ORDER BY `users`.`id` DESC
@@ -175,4 +175,10 @@
         </if>
         LIMIT #{pageStart}, #{pageSize};
     </select>
+
+    <update id="incrementCredit">
+        UPDATE users
+        SET credit1 = credit1 + #{credit}
+        WHERE id = #{userId} AND deleted = 0
+    </update>
 </mapper>

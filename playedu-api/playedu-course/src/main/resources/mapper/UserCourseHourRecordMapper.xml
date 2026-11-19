@@ -25,17 +25,39 @@
         created_at,updated_at
     </sql>
 
+    <select id="findLatest" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM user_course_hour_records
+        WHERE user_id = #{userId}
+            AND course_id = #{courseId}
+            AND hour_id = #{hourId}
+        ORDER BY is_finished DESC, finished_at DESC, id DESC
+        LIMIT 1
+    </select>
+
+    <select id="countDistinctFinished" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT hour_id)
+        FROM user_course_hour_records
+        WHERE user_id = #{userId}
+            AND course_id = #{courseId}
+            AND is_finished = 1
+    </select>
+
     <select id="getUserLatestRecords" resultType="xyz.playedu.course.domain.UserCourseHourRecord">
         select `t1`.*
         from `user_course_hour_records` as `t1`
-                 inner join (select `course_id`, max(`updated_at`) as `latest_at`
-                             from `user_course_hour_records`
-                             where `user_id` = #{userId}
-                             group by `course_id`) as `t2`
-                            on `t2`.`course_id` = `t1`.`course_id` and
-                               `t2`.`latest_at` = `t1`.`updated_at`
-        order by `t1`.`updated_at` desc
-            limit #{size};
+        inner join (
+            select `id`,
+                   row_number() over (
+                       partition by `course_id`
+                       order by `updated_at` desc, `id` desc
+                   ) as `course_row`
+            from `user_course_hour_records`
+            where `user_id` = #{userId}
+        ) as `ranked` on `ranked`.`id` = `t1`.`id`
+        where `ranked`.`course_row` = 1
+        order by `t1`.`updated_at` desc, `t1`.`id` desc
+        limit #{size};
     </select>
     <select id="getUserCourseHourCount"
             resultType="xyz.playedu.common.types.mapper.UserCourseHourRecordCourseCountMapper">

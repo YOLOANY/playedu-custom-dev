@@ -30,6 +30,13 @@ export function learningTracks(page: number, size: number) {
   });
 }
 
+export function credits(page: number, size: number) {
+  return client.get("/api/v1/user/credits", {
+    page: page,
+    size: size,
+  });
+}
+
 // 修改头像
 export function avatar(params: any) {
   return client.put("/api/v1/user/avatar", params);

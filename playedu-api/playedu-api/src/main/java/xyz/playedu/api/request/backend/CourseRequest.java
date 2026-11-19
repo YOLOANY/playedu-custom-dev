@@ -16,6 +16,8 @@
 package xyz.playedu.api.request.backend;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
@@ -64,12 +66,15 @@ public class CourseRequest {
         private String type;
         private Integer duration;
         private Integer rid;
+
+        @Min(value = 0, message = "学分不能小于0")
+        private Integer credit;
     }
 
     @Data
     public static class ChapterItem {
         private String name;
-        private List<HourItem> hours;
+        @Valid private List<HourItem> hours;
     }
 
     @Data
@@ -93,6 +98,7 @@ public class CourseRequest {
     // ],
     // }...
     // ]
+    @Valid
     @NotNull(message = "chapters参数不存在")
     private List<ChapterItem> chapters;
 
@@ -105,6 +111,7 @@ public class CourseRequest {
     // 'rid' => '资源id',
     // }...
     // ]
+    @Valid
     @NotNull(message = "hours参数不存在")
     private List<HourItem> hours;
 

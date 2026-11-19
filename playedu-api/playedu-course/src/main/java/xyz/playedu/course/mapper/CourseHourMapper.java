@@ -17,6 +17,7 @@ package xyz.playedu.course.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import xyz.playedu.course.domain.CourseHour;
 
 /**
@@ -25,4 +26,6 @@ import xyz.playedu.course.domain.CourseHour;
  * @createDate 2023-03-15 10:16:45
  */
 @Mapper
-public interface CourseHourMapper extends BaseMapper<CourseHour> {}
+public interface CourseHourMapper extends BaseMapper<CourseHour> {
+    Integer getTotalCreditByCourseId(@Param("courseId") Integer courseId);
+}
