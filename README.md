@@ -1,6 +1,6 @@
-# PlayEdu 二次开发：学习轨迹与学员管理
+# PlayEdu 二次开发：学习轨迹、培训学分与学员管理
 
-基于 PlayEdu 2.3 开源版进行二次开发，在保留原有培训功能的基础上，为 H5 学员端增加学习轨迹、分页加载和界面优化，并扩展管理后台的学员手机号、身份证号管理能力。
+基于 PlayEdu 2.3 开源版进行二次开发，在保留原有培训功能的基础上，增加 H5 学习轨迹、培训学分自动核算、学期学分统计、管理端排名与班级汇总，并扩展管理后台的学员手机号、身份证号管理能力。
 
 二次开发分支：`main`
 
@@ -47,13 +47,40 @@
 - 姓名、邮箱、手机号、身份证号分别受管理员数据权限控制，无权限时输出脱敏内容。
 - 管理操作日志会屏蔽密码、Token 和身份证号等敏感字段。
 
+### 培训学分自动核算
+
+- 管理员可为每个课时配置非负整数学分，支持无章节课程、章节课时、单个编辑和批量添加。
+- 学员首次完成课时时自动发放学分，同时保存课程、课时和学分快照流水。
+- 课时完成记录、课程进度、学分流水和学员余额在同一事务中处理，任一步失败都会整体回滚。
+- 数据库唯一键 `(user_id, hour_id)` 防止重复发放，余额通过原子更新增加。
+- 修改课时学分只影响之后的新发放，不修改既有流水，不倒扣历史学分。
+- 提供历史完成记录的一次性幂等补发脚本，以及执行前检查和执行后核对脚本。
+
+### 学期学分与管理端统计
+
+- H5 展示累计学分、本学期学分和学分流水，支持分页加载。
+- 学期统计使用 `[start, end)` 左闭右开区间，并支持配置学期名称、起止日期和时区。
+- 管理端展示全院学生学分排名和各班级学分汇总。
+- 班级汇总包含下级班级，同一班级内按学生去重。
+- 学分接口的学员身份只从登录上下文获取，不能通过请求参数切换学员。
+
+### 管理端课程列表优化
+
+- “指派部门”默认展示前两个班级，班级名称可跳转到对应学员列表。
+- 剩余班级通过“+N个”悬浮气泡展示，不重复显示前两个班级。
+- 气泡支持逐行链接、悬浮高亮和持续悬浮，不改变表格固定列宽。
+- 最近学习按课程只返回一个最新课时，避免同一课程多个课时造成重复键异常。
+
 ## 功能入口
 
-```text
-H5 学员端 → 我的 → 右上角更多 → 学习轨迹
-```
+| 功能 | 入口 |
+| --- | --- |
+| 学习轨迹 | H5 学员端 → 我的 → 右上角更多 → 学习轨迹 |
+| 我的学分 | H5 学员端 → 我的 → 右上角更多 → 我的学分 |
+| 学分统计 | 管理后台 → 学员管理 → 学分 |
+| 课时学分 | 管理后台 → 课程管理 → 课时管理 |
 
-页面路由为 `/learning-tracks`，需要学员登录。
+学习轨迹路由为 `/learning-tracks`，我的学分路由为 `/my-credits`，管理端学分页面路由为 `/member/credits`，均需要相应登录身份和权限。
 
 ## 学习轨迹接口
 
@@ -112,6 +139,55 @@ pageStart = (page - 1) * size
 
 总数查询使用相同的学员和完成状态条件，但不应用分页。
 
+## 培训学分接口与规则
+
+### H5 我的学分
+
+```http
+GET /api/v1/user/credits?page=1&size=20
+```
+
+响应包含：
+
+| 字段 | 说明 |
+| --- | --- |
+| `total_credit` | 当前学员累计学分余额 |
+| `semester_credit` | 当前配置学期内获得的学分 |
+| `semester` | 学期名称 |
+| `semester_start` | 学期开始日期，包含当天 |
+| `semester_end` | 学期结束日期，不包含当天 |
+| `time_zone` | 学期边界使用的时区 |
+| `data` | 当前页学分流水 |
+| `total` | 当前学员流水总数 |
+
+本学期学分由后端对全部符合学期条件的流水聚合，不是对当前分页数据求和。
+
+### 管理端统计
+
+```http
+GET /api/backend/v1/user/credit-ranking
+GET /api/backend/v1/department/credit-summary
+```
+
+全院学生排名按学分降序排列，并保留学员分页和敏感字段脱敏规则。班级汇总通过部门层级关系包含下级班级，但同一班级统计范围内会对学生去重。多部门学生可分别计入不同班级，父子班级行属于不同统计口径，不能把所有行直接相加作为全院总数。
+
+### 学分发放与历史补发
+
+课时完成后，系统在同一事务内更新学习记录和课程进度，并追加 `user_credit_records` 流水、增加 `users.credit1` 余额。唯一键 `(user_id, hour_id)` 是跨线程、跨实例的最终防重保障。
+
+历史补发按学员和课时聚合旧完成记录，使用 `INSERT IGNORE` 避免重复写入，再从流水核对余额。补发脚本不会改变既有流水的课程标题、课时标题和学分快照。
+
+数据库升级文件：
+
+```text
+docker/mysql/upgrade/20261117_training_credits_schema.sql
+docker/mysql/upgrade/20261117_training_credits_precheck.sql
+docker/mysql/upgrade/20261117_training_credits_backfill.sql
+docker/mysql/upgrade/20261117_training_credits_verify.sql
+```
+
+已有环境必须先备份、核对课时学分并停止写入，再安排历史补发。当前二开虚拟机已经完成历史补发，不要重复执行。
+
 ## 主要改动位置
 
 后端：
@@ -161,11 +237,42 @@ playedu-api/playedu-course/src/main/resources/mapper/UserCourseRecordMapper.xml
 playedu-api/playedu-system/src/main/java/xyz/playedu/system/aspectj/AdminLogAspect.java
 ```
 
+培训学分后端：
+
+```text
+playedu-api/playedu-api/src/main/java/xyz/playedu/api/service/UserCourseHourCompletionService.java
+playedu-api/playedu-api/src/main/java/xyz/playedu/api/service/CreditSemesterService.java
+playedu-api/playedu-api/src/main/java/xyz/playedu/api/listener/UserCreditRecordListener.java
+playedu-api/playedu-api/src/main/java/xyz/playedu/api/controller/frontend/UserController.java
+playedu-api/playedu-api/src/main/java/xyz/playedu/api/controller/backend/UserController.java
+playedu-api/playedu-api/src/main/java/xyz/playedu/api/controller/backend/DepartmentController.java
+playedu-api/playedu-course/src/main/java/xyz/playedu/course/domain/UserCreditRecord.java
+playedu-api/playedu-course/src/main/java/xyz/playedu/course/service/UserCreditRecordService.java
+playedu-api/playedu-course/src/main/java/xyz/playedu/course/service/CreditStatisticsService.java
+playedu-api/playedu-course/src/main/resources/mapper/UserCreditRecordMapper.xml
+playedu-api/playedu-course/src/main/resources/mapper/CreditStatisticsMapper.xml
+```
+
+培训学分前端：
+
+```text
+playedu-h5/src/pages/my-credits/index.tsx
+playedu-h5/src/api/user.ts
+playedu-admin/src/pages/member/credits.tsx
+playedu-admin/src/pages/course/compenents/hours.tsx
+playedu-admin/src/pages/course/compenents/hour-update.tsx
+playedu-admin/src/api/course-hour.ts
+```
+
 数据库升级与旧数据迁移：
 
 ```text
 docker/mysql/upgrade/20261105_add_mobile_to_users.sql
 docker/mysql/upgrade/20261110_encrypt_id_card.sql
+docker/mysql/upgrade/20261117_training_credits_schema.sql
+docker/mysql/upgrade/20261117_training_credits_precheck.sql
+docker/mysql/upgrade/20261117_training_credits_backfill.sql
+docker/mysql/upgrade/20261117_training_credits_verify.sql
 playedu-api/playedu-system/src/main/java/xyz/playedu/system/checks/IdCardMigrationRunner.java
 ```
 
@@ -236,6 +343,17 @@ PLAYEDU_ID_CARD_MIGRATION_ENABLED=false
 
 密钥解码后必须正好为 32 字节，可使用 `openssl rand -base64 32` 生成。密钥为空、Base64 格式错误或长度不正确时，后端会拒绝启动。真实密钥只保存在部署环境的 `.env`，不要写入 README、Git、聊天记录或测试数据。更换密钥前必须制定既有密文的迁移方案，不能直接覆盖。
 
+### 学期学分配置
+
+```dotenv
+CREDIT_SEMESTER_NAME=2026-2027学年第一学期
+CREDIT_SEMESTER_START=2026-09-01
+CREDIT_SEMESTER_END=2027-01-15
+CREDIT_TIME_ZONE=Asia/Shanghai
+```
+
+学期开始日期包含在统计范围内，结束日期不包含在统计范围内。结束日期必须晚于开始日期，日期使用 `YYYY-MM-DD` 格式。调整配置后需要重新部署应用，并核对跨学期边界的统计结果。
+
 数据库升级文件位于 `docker/mysql/upgrade`。已有环境升级前必须备份并核对现有字段、索引和数据；当前二开虚拟机已完成手机号、身份证号字段升级及旧数据迁移，不要重复执行这些 SQL 或迁移 Runner。正常运行时保持 `PLAYEDU_ID_CARD_MIGRATION_ENABLED=false`，不要删除数据库数据卷。
 
 | 端 | 默认地址 |
@@ -269,6 +387,26 @@ H5 使用 `VITE_APP_URL=/api/`。经过既有 Nginx 代理规则后，API 函数
 - 课程列表还受课程显示状态和指派范围影响。
 
 只插入课时完成记录不能完整模拟其他页面。测试数据应分别核对依赖，不应随意修改真实业务数据。
+
+### 培训学分与课程列表
+
+1. 分别验证无章节课程和章节课时的学分保存，拒绝负数和无效输入。
+2. 首次完成课时后，确认完成记录、课程进度、流水和余额同时更新；重复完成不能重复发放。
+3. 验证 0 学分、修改课时学分、删除或重置学习记录等边界场景。
+4. 检查学期开始记录被包含、结束记录被排除，分页大小变化不影响全学期汇总。
+5. 核对全院学生排名、下级班级汇总和学生去重结果。
+6. 课程列表检查前两个班级链接、“+N个”计数、剩余班级气泡和固定列宽。
+7. 同一课程存在多个学习课时时，最近学习只返回一个最新课时。
+
+学分相关测试位于：
+
+```text
+playedu-api/playedu-api/src/test/java/xyz/playedu/api/service/
+playedu-api/playedu-api/src/test/java/xyz/playedu/api/controller/
+playedu-api/playedu-course/src/test/java/xyz/playedu/course/
+```
+
+数据库并发、事务回滚和历史补发测试只能使用一次性 MySQL 测试库，不能使用现有业务数据库。Mockito 异常测试不能替代真实数据库回滚验证。
 
 ### 学员管理
 
