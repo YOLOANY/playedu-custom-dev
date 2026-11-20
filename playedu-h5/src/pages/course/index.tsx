@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Image, ProgressCircle, Tabs, Toast } from "antd-mobile";
 import styles from "./index.module.scss";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
@@ -50,16 +50,28 @@ const CoursePage = () => {
   const [attachments, setAttachments] = useState<attachModal[]>([]);
   const [items, setItems] = useState<tabModal[]>([]);
   const [downLoadTemplateURL, setDownLoadTemplateURL] = useState("");
+  const [isFavorite, setIsFavorite] = useState<boolean | null>(null);
+  const [favoriteSubmitting, setFavoriteSubmitting] = useState(false);
+  const detailRequestRef = useRef(0);
+  const favoriteRequestRef = useRef(0);
 
   useEffect(() => {
+    favoriteRequestRef.current += 1;
+    setFavoriteSubmitting(false);
     getDetail();
   }, [courseId]);
 
   const getDetail = () => {
+    const requestId = ++detailRequestRef.current;
+    setIsFavorite(null);
     vod.detail(Number(courseId)).then((res: any) => {
+      if (requestId !== detailRequestRef.current) {
+        return;
+      }
       let courseItem: CourseModel = res.data.course;
       document.title = courseItem.title || "课程详情";
       setCourse(courseItem);
+      setIsFavorite(res.data.is_favorite);
       setChapters(res.data.chapters);
       if (!isEmptyObject(res.data.hours)) {
         setHours(res.data.hours);
@@ -104,6 +116,35 @@ const CoursePage = () => {
     }
   }, [learnRecord, learnHourRecord]);
 
+  const toggleFavorite = () => {
+    if (isFavorite === null || favoriteSubmitting || !courseId) {
+      return;
+    }
+
+    const currentFavorite = isFavorite;
+    const requestId = ++favoriteRequestRef.current;
+    setFavoriteSubmitting(true);
+    const request = currentFavorite
+      ? vod.unfavorite(Number(courseId))
+      : vod.favorite(Number(courseId));
+    request
+      .then((res: any) => {
+        if (requestId === favoriteRequestRef.current) {
+          setIsFavorite(res.data.is_favorite);
+        }
+      })
+      .catch(() => {
+        if (requestId === favoriteRequestRef.current) {
+          Toast.show(currentFavorite ? "取消收藏失败，请稍后重试" : "收藏失败，请稍后重试");
+        }
+      })
+      .finally(() => {
+        if (requestId === favoriteRequestRef.current) {
+          setFavoriteSubmitting(false);
+        }
+      });
+  };
+
   const playVideo = (cid: number, id: number) => {
     navigate(`/course/${cid}/hour/${id}`);
   };
@@ -144,7 +185,10 @@ const CoursePage = () => {
         href={downLoadTemplateURL}
         download={true}
       ></a>
-      <div className="main-header" style={{ backgroundColor: "#FF4D4F" }}>
+      <div
+        className={`main-header ${styles["header"]}`}
+        style={{ backgroundColor: "#FF4D4F" }}
+      >
         <Image
           className="back-icon"
           src={backIcon}
@@ -158,6 +202,14 @@ const CoursePage = () => {
             }
           }}
         />
+        <button
+          type="button"
+          className={styles["favorite-button"]}
+          disabled={isFavorite === null || favoriteSubmitting}
+          onClick={toggleFavorite}
+        >
+          {isFavorite ? "已收藏" : "收藏"}
+        </button>
       </div>
       <div className={styles["top-content"]}>
         <div className={styles["title"]}>{course?.title + ""}</div>

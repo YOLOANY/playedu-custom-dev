@@ -261,6 +261,13 @@ const MemberPage = () => {
               </div>
             )}
           </div>
+          <div
+            className={styles["record-item"]}
+            onClick={() => navigate("/my-favorites")}
+          >
+            <div className={styles["name"]}>我的收藏</div>
+            <div className={styles["value"]}>查看收藏课程</div>
+          </div>
         </div>
       </div>
       <Mask

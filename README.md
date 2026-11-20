@@ -1,6 +1,6 @@
-# PlayEdu 二次开发：学习轨迹、培训学分与学员管理
+# PlayEdu 二次开发：学习轨迹、课程收藏、培训学分与学员管理
 
-基于 PlayEdu 2.3 开源版进行二次开发，在保留原有培训功能的基础上，增加 H5 学习轨迹、培训学分自动核算、学期学分统计、管理端排名与班级汇总，并扩展管理后台的学员手机号、身份证号管理能力。
+基于 PlayEdu 2.3 开源版进行二次开发，在保留原有培训功能的基础上，增加 H5 学习轨迹、课程收藏、培训学分自动核算、学期学分统计、管理端排名与班级汇总，并扩展管理后台的学员手机号、身份证号管理能力。
 
 二次开发分支：`main`
 
@@ -64,6 +64,14 @@
 - 班级汇总包含下级班级，同一班级内按学生去重。
 - 学分接口的学员身份只从登录上下文获取，不能通过请求参数切换学员。
 
+### 课程收藏
+
+- 学员可在 H5 课程详情收藏或取消收藏，并在“我的 → 更多 → 我的收藏”分页查看。
+- 收藏身份只取当前登录学员，唯一键 `(user_id, course_id)` 防止重复收藏。
+- 收藏列表读取当前课程标题和封面，先过滤下架及无权限课程，再进行分页和计数。
+- 下架、物理删除或取消指派不主动清理收藏记录；权限恢复后仍可重新显示。
+- 新增收藏要求课程当前上架且学员可访问，取消收藏保持幂等。
+
 ### 管理端课程列表优化
 
 - “指派部门”默认展示前两个班级，班级名称可跳转到对应学员列表。
@@ -77,10 +85,11 @@
 | --- | --- |
 | 学习轨迹 | H5 学员端 → 我的 → 右上角更多 → 学习轨迹 |
 | 我的学分 | H5 学员端 → 我的 → 右上角更多 → 我的学分 |
+| 我的收藏 | H5 学员端 → 我的 → 右上角更多 → 我的收藏 |
 | 学分统计 | 管理后台 → 学员管理 → 学分 |
 | 课时学分 | 管理后台 → 课程管理 → 课时管理 |
 
-学习轨迹路由为 `/learning-tracks`，我的学分路由为 `/my-credits`，管理端学分页面路由为 `/member/credits`，均需要相应登录身份和权限。
+学习轨迹路由为 `/learning-tracks`，我的学分路由为 `/my-credits`，我的收藏路由为 `/my-favorites`，管理端学分页面路由为 `/member/credits`，均需要相应登录身份和权限。
 
 ## 学习轨迹接口
 
@@ -188,6 +197,24 @@ docker/mysql/upgrade/20261117_training_credits_verify.sql
 
 已有环境必须先备份、核对课时学分并停止写入，再安排历史补发。当前二开虚拟机已经完成历史补发，不要重复执行。
 
+## 课程收藏接口与升级
+
+```http
+PUT /api/v1/course/{id}/favorite
+DELETE /api/v1/course/{id}/favorite
+GET /api/v1/user/favorites?page=1&size=20
+```
+
+课程详情响应增加 `is_favorite`。收藏列表返回 `data`、`total` 和当前页封面的 `resource_url`，列表与总数共享同一套开放课程、直属部门及父部门访问过滤。创建收藏直接检查当前课程权限，不读取播放权限缓存。
+
+已有环境升级文件：
+
+```text
+docker/mysql/upgrade/20261119_user_course_favorites.sql
+```
+
+该脚本只创建收藏表，不清理历史学习数据，也不重复执行培训学分、手机号或身份证号迁移。
+
 ## 主要改动位置
 
 后端：
@@ -273,6 +300,7 @@ docker/mysql/upgrade/20261117_training_credits_schema.sql
 docker/mysql/upgrade/20261117_training_credits_precheck.sql
 docker/mysql/upgrade/20261117_training_credits_backfill.sql
 docker/mysql/upgrade/20261117_training_credits_verify.sql
+docker/mysql/upgrade/20261119_user_course_favorites.sql
 playedu-api/playedu-system/src/main/java/xyz/playedu/system/checks/IdCardMigrationRunner.java
 ```
 
@@ -407,6 +435,14 @@ playedu-api/playedu-course/src/test/java/xyz/playedu/course/
 ```
 
 数据库并发、事务回滚和历史补发测试只能使用一次性 MySQL 测试库，不能使用现有业务数据库。Mockito 异常测试不能替代真实数据库回滚验证。
+
+### 课程收藏
+
+1. 收藏、取消收藏后刷新详情，状态应保持正确，重复点击不产生重复记录。
+2. 收藏中心验证空状态、连续分页、跨页封面和两名学员数据隔离。
+3. 下架课程或撤销学员的最后一个有效部门权限后，列表与总数同步减少，收藏记录仍保留。
+4. 恢复访问权限后原收藏重新出现；物理删除课程只影响列表显示，不主动删除收藏行。
+5. 混合至少 25 条可访问收藏与下架、越权、已删除课程时，第一页应有 20 条，第二页 5 条，总数为 25。
 
 ### 学员管理
 

@@ -5,6 +5,14 @@ export function detail(id: number) {
   return client.get(`/api/v1/course/${id}`, {});
 }
 
+export function favorite(id: number) {
+  return client.put(`/api/v1/course/${id}/favorite`, {});
+}
+
+export function unfavorite(id: number) {
+  return client.destroy(`/api/v1/course/${id}/favorite`);
+}
+
 // 线上课课时详情
 export function play(courseId: number, id: number) {
   return client.get(`/api/v1/course/${courseId}/hour/${id}`, {});

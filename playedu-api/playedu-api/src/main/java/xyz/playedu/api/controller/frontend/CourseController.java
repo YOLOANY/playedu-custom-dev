@@ -54,6 +54,8 @@ public class CourseController {
 
     @Autowired private CourseAttachmentDownloadLogService courseAttachmentDownloadLogService;
 
+    @Autowired private UserCourseFavoriteService userCourseFavoriteService;
+
     @GetMapping("/{id}")
     @SneakyThrows
     public JsonResponse detail(@PathVariable(name = "id") Integer id) {
@@ -96,11 +98,25 @@ public class CourseController {
                 userCourseHourRecordService.getRecords(FCtx.getId(), course.getId()).stream()
                         .collect(Collectors.toMap(UserCourseHourRecord::getHourId, e -> e)));
         data.put("attachments", attachments);
+        data.put("is_favorite", userCourseFavoriteService.isFavorite(FCtx.getId(), id));
 
         // 获取签名url
         data.put("resource_url", resourceService.chunksPreSignUrlByIds(rids));
 
         return JsonResponse.data(data);
+    }
+
+    @PutMapping("/{id}/favorite")
+    @SneakyThrows
+    public JsonResponse favorite(@PathVariable(name = "id") Integer id) {
+        userCourseFavoriteService.favorite(FCtx.getId(), id);
+        return JsonResponse.data(Map.of("is_favorite", true));
+    }
+
+    @DeleteMapping("/{id}/favorite")
+    public JsonResponse unfavorite(@PathVariable(name = "id") Integer id) {
+        userCourseFavoriteService.unfavorite(FCtx.getId(), id);
+        return JsonResponse.data(Map.of("is_favorite", false));
     }
 
     @GetMapping("/{courseId}/attach/{id}/download")
