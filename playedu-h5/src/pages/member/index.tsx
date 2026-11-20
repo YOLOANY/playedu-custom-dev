@@ -217,10 +217,6 @@ const MemberPage = () => {
         </div>
         <div className={styles["records-content"]}>
           <div className={styles["record-item"]}>
-            <div className={styles["name"]}>所在部门</div>
-            <div className={styles["value"]}>{currentDepartment}</div>
-          </div>
-          <div className={styles["record-item"]}>
             <div className={styles["name"]}>课时总进度</div>
             <div className={styles["value"]}>
               <strong>
