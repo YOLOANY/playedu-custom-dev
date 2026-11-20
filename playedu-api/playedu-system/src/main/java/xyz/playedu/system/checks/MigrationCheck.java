@@ -546,6 +546,27 @@ public class MigrationCheck implements CommandLineRunner {
                     add(
                             new HashMap<>() {
                                 {
+                                    put("table", "user_course_favorites");
+                                    put("name", "20261119_10_00_00_user_course_favorites");
+                                    put(
+                                            "sql",
+                                            """
+                                                    CREATE TABLE `user_course_favorites` (
+                                                      `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                                      `user_id` int(11) NOT NULL DEFAULT 0 COMMENT '学员ID',
+                                                      `course_id` int(11) NOT NULL DEFAULT 0 COMMENT '课程ID',
+                                                      `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '收藏时间',
+                                                      PRIMARY KEY (`id`),
+                                                      UNIQUE KEY `uk_user_course_favorite` (`user_id`,`course_id`),
+                                                      KEY `idx_user_favorite_user_created` (`user_id`,`created_at`,`id`)
+                                                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT '学员课程收藏表';
+                                                    """);
+                                }
+                            });
+
+                    add(
+                            new HashMap<>() {
+                                {
                                     put("table", "user_course_records");
                                     put("name", "20231208_14_00_00_user_course_records");
                                     put(

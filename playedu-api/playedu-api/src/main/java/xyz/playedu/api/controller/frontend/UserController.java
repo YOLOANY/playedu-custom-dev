@@ -83,6 +83,8 @@ public class UserController {
 
     @Autowired private UserUploadImageLogService userUploadImageLogService;
 
+    @Autowired private UserCourseFavoriteService userCourseFavoriteService;
+
     @GetMapping("/detail")
     public JsonResponse detail() {
         User user = FCtx.getUser();
@@ -467,6 +469,22 @@ public class UserController {
         data.put("time_zone", creditSemesterService.getTimeZone());
         data.put("data", result.getData());
         data.put("total", result.getTotal());
+        return JsonResponse.data(data);
+    }
+
+    @SneakyThrows
+    @GetMapping("/favorites")
+    public JsonResponse favorites(@RequestParam HashMap<String, Object> params) {
+        Integer page = MapUtils.getInteger(params, "page", 1);
+        Integer size = MapUtils.getInteger(params, "size", 20);
+        PaginationResult<Course> result =
+                userCourseFavoriteService.paginate(FCtx.getId(), page, size);
+        List<Integer> rids = result.getData().stream().map(Course::getThumb).toList();
+
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("data", result.getData());
+        data.put("total", result.getTotal());
+        data.put("resource_url", resourceService.chunksPreSignUrlByIds(rids));
         return JsonResponse.data(data);
     }
 }

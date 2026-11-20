@@ -1,0 +1,63 @@
+CREATE TABLE IF NOT EXISTS courses (
+    id INT NOT NULL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+SET @ddl = (SELECT IF(COUNT(*) = 0, 'ALTER TABLE courses ADD COLUMN thumb INT NOT NULL DEFAULT 0', 'SELECT 1') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'courses' AND COLUMN_NAME = 'thumb');
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+SET @ddl = (SELECT IF(COUNT(*) = 0, 'ALTER TABLE courses ADD COLUMN charge INT NOT NULL DEFAULT 0', 'SELECT 1') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'courses' AND COLUMN_NAME = 'charge');
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+SET @ddl = (SELECT IF(COUNT(*) = 0, 'ALTER TABLE courses ADD COLUMN short_desc VARCHAR(255) NOT NULL DEFAULT ''''', 'SELECT 1') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'courses' AND COLUMN_NAME = 'short_desc');
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+SET @ddl = (SELECT IF(COUNT(*) = 0, 'ALTER TABLE courses ADD COLUMN is_required TINYINT NOT NULL DEFAULT 0', 'SELECT 1') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'courses' AND COLUMN_NAME = 'is_required');
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+SET @ddl = (SELECT IF(COUNT(*) = 0, 'ALTER TABLE courses ADD COLUMN class_hour INT NOT NULL DEFAULT 0', 'SELECT 1') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'courses' AND COLUMN_NAME = 'class_hour');
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+SET @ddl = (SELECT IF(COUNT(*) = 0, 'ALTER TABLE courses ADD COLUMN is_show TINYINT NOT NULL DEFAULT 1', 'SELECT 1') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'courses' AND COLUMN_NAME = 'is_show');
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+SET @ddl = (SELECT IF(COUNT(*) = 0, 'ALTER TABLE courses ADD COLUMN created_at TIMESTAMP NULL DEFAULT NULL', 'SELECT 1') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'courses' AND COLUMN_NAME = 'created_at');
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+SET @ddl = (SELECT IF(COUNT(*) = 0, 'ALTER TABLE courses ADD COLUMN sort_at TIMESTAMP NULL DEFAULT NULL', 'SELECT 1') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'courses' AND COLUMN_NAME = 'sort_at');
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+SET @ddl = (SELECT IF(COUNT(*) = 0, 'ALTER TABLE courses ADD COLUMN extra TEXT NULL', 'SELECT 1') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'courses' AND COLUMN_NAME = 'extra');
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+SET @ddl = (SELECT IF(COUNT(*) = 0, 'ALTER TABLE courses ADD COLUMN admin_id INT NOT NULL DEFAULT 0', 'SELECT 1') FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'courses' AND COLUMN_NAME = 'admin_id');
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+CREATE TABLE IF NOT EXISTS course_department_user (
+    course_id INT NOT NULL DEFAULT 0,
+    range_id INT NOT NULL DEFAULT 0,
+    type INT NOT NULL DEFAULT 0,
+    KEY course_id (course_id),
+    KEY range_id (range_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS user_course_favorites (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id INT NOT NULL DEFAULT 0,
+    course_id INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_user_course_favorite (user_id, course_id),
+    KEY idx_user_favorite_user_created (user_id, created_at, id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

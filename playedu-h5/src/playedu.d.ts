@@ -106,6 +106,12 @@ declare global {
     verify_at?: string;
   }
 
+  interface UserFavoritesModel {
+    data: CourseModel[];
+    total: number;
+    resource_url: ResourceUrlModel;
+  }
+
   interface ResourceUrlModel {
     [key: number]: string;
   }
